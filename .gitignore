@@ -1,0 +1,9 @@
+Build/Objects/*
+Build/Binaries/*
+ipch
+ipch/*
+*.vcxproj.user
+*.opensdf
+*.sdf
+*.suo
+
