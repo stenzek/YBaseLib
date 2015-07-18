@@ -1,0 +1,474 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{3a4a14e3-9ab6-4ae6-9b28-ff69e2dfa879}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Include Files">
+      <UniqueIdentifier>{0b2d198b-7961-4e5e-a2b3-a727c0335a86}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\HTML5">
+      <UniqueIdentifier>{17fff738-4afb-4f1b-872b-d45e25f75fd0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\POSIX">
+      <UniqueIdentifier>{c5b137a7-45d0-4297-8ec3-971af0d394d1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Windows">
+      <UniqueIdentifier>{d0363963-d0ed-488d-b350-f3957e697614}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Include Files\HTML5">
+      <UniqueIdentifier>{f7fdfe7b-b088-44d3-9854-334bbc353702}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Include Files\Windows">
+      <UniqueIdentifier>{85a75ac1-8280-4c20-8592-0f421a154584}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Include Files\POSIX">
+      <UniqueIdentifier>{e74430d3-b549-47dc-8083-634af5e679a9}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Include\YBaseLib\HTML5\HTML5Event.h">
+      <Filter>Include Files\HTML5</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\HTML5\HTML5Mutex.h">
+      <Filter>Include Files\HTML5</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\HTML5\HTML5ReadWriteLock.h">
+      <Filter>Include Files\HTML5</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\HTML5\HTML5RecursiveMutex.h">
+      <Filter>Include Files\HTML5</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\HTML5\HTML5Thread.h">
+      <Filter>Include Files\HTML5</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\HTML5\HTML5Barrier.h">
+      <Filter>Include Files\HTML5</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\HTML5\HTML5ConditionVariable.h">
+      <Filter>Include Files\HTML5</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\POSIX\POSIXMutex.h">
+      <Filter>Include Files\POSIX</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\POSIX\POSIXReadWriteLock.h">
+      <Filter>Include Files\POSIX</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\POSIX\POSIXRecursiveMutex.h">
+      <Filter>Include Files\POSIX</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\POSIX\POSIXSubprocess.h">
+      <Filter>Include Files\POSIX</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\POSIX\POSIXThread.h">
+      <Filter>Include Files\POSIX</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\POSIX\POSIXBarrier.h">
+      <Filter>Include Files\POSIX</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\POSIX\POSIXConditionVariable.h">
+      <Filter>Include Files\POSIX</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\POSIX\POSIXEvent.h">
+      <Filter>Include Files\POSIX</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\Windows\WindowsHeaders.h">
+      <Filter>Include Files\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\Windows\WindowsMutex.h">
+      <Filter>Include Files\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\Windows\WindowsReadWriteLock.h">
+      <Filter>Include Files\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\Windows\WindowsRecursiveMutex.h">
+      <Filter>Include Files\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\Windows\WindowsSubprocess.h">
+      <Filter>Include Files\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\Windows\WindowsThread.h">
+      <Filter>Include Files\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\Windows\WindowsBarrier.h">
+      <Filter>Include Files\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\Windows\WindowsConditionVariable.h">
+      <Filter>Include Files\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\Windows\WindowsEvent.h">
+      <Filter>Include Files\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\ProgressCallbacks.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\ReadWriteLock.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\RecursiveMutex.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\RecursiveMutexLock.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\ReferenceCounted.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\ReferenceCountedHolder.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\Singleton.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\String.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\StringConverter.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\StringHashTable.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\StringParser.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\Subprocess.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\TextReader.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\TextWriter.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\Thread.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\ThreadPool.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\Timer.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\Timestamp.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\XMLReader.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\XMLWriter.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\ZipArchive.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\ZLibHelpers.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\AlignedMemArray.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\Array.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\Assert.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\Atomic.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\AutoReleasePtr.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\Barrier.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\BinaryBlob.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\BinaryReadBuffer.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\BinaryReader.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\BinaryWriteBuffer.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\BinaryWriter.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\BitSet.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\ByteStream.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\CallbackQueue.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\CIStringHashTable.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\Common.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\ConditionVariable.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\CPUID.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\CRC32.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\CString.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\Endian.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\Error.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\Event.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\Exception.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\FileSystem.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\Functor.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\HashTable.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\HashTrait.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\IntrusiveLinkedList.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\KeyValuePair.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\LinkedList.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\Log.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\Math.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\MD5Digest.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\MemArray.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\Memory.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\Mutex.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\MutexLock.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\NameTable.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\NonCopyable.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\NumericLimits.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\Pair.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\Platform.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\PODArray.h">
+      <Filter>Include Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\Source\YBaseLib\MD5Digest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\Memory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\NameTable.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\NumericLimits.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\ProgressCallbacks.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\ReferenceCounted.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\String.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\StringConverter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\StringParser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\TextReader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\TextWriter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\ThreadPool.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\Timer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\Timestamp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\XMLReader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\XMLWriter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\ZipArchive.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\ZLibHelpers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\Assert.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\Atomic.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\BinaryBlob.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\BinaryReadBuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\BinaryReader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\BinaryWriteBuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\BinaryWriter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\ByteStream.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\CallbackQueue.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\CPUID.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\CRC32.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\CString.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\Endian.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\Error.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\Exception.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\FileSystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\HashTrait.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\Log.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\Math.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\HTML5\HTML5Platform.cpp">
+      <Filter>Source Files\HTML5</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\HTML5\HTML5ReadWriteLock.cpp">
+      <Filter>Source Files\HTML5</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\HTML5\HTML5Thread.cpp">
+      <Filter>Source Files\HTML5</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\HTML5\HTML5Barrier.cpp">
+      <Filter>Source Files\HTML5</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\HTML5\HTML5ConditionVariable.cpp">
+      <Filter>Source Files\HTML5</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\HTML5\HTML5FileSystem.cpp">
+      <Filter>Source Files\HTML5</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\POSIX\POSIXFileSystem.cpp">
+      <Filter>Source Files\POSIX</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\POSIX\POSIXPlatform.cpp">
+      <Filter>Source Files\POSIX</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\POSIX\POSIXReadWriteLock.cpp">
+      <Filter>Source Files\POSIX</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\POSIX\POSIXSubprocess.cpp">
+      <Filter>Source Files\POSIX</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\POSIX\POSIXThread.cpp">
+      <Filter>Source Files\POSIX</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\POSIX\POSIXBarrier.cpp">
+      <Filter>Source Files\POSIX</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\POSIX\POSIXConditionVariable.cpp">
+      <Filter>Source Files\POSIX</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\Windows\WindowsPlatform.cpp">
+      <Filter>Source Files\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\Windows\WindowsReadWriteLock.cpp">
+      <Filter>Source Files\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\Windows\WindowsSubprocess.cpp">
+      <Filter>Source Files\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\Windows\WindowsThread.cpp">
+      <Filter>Source Files\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\Windows\WindowsBarrier.cpp">
+      <Filter>Source Files\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\Windows\WindowsConditionVariable.cpp">
+      <Filter>Source Files\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\YBaseLib\Windows\WindowsFileSystem.cpp">
+      <Filter>Source Files\Windows</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
