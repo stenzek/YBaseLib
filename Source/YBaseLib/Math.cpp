@@ -24,7 +24,7 @@ float Y_fsnap(float v, float step)
         return v - r;
 }
 
-bool Y_fnearequal(float f1, float f2, float fEpsilon /* = SFLT_EPSILON */)
+bool Y_fnearequal(float f1, float f2, float fEpsilon)
 {
     return Y_fabs(f1 - f2) <= fEpsilon;
 }

@@ -3,6 +3,7 @@
 #include "YBaseLib/Math.h"
 #include "YBaseLib/Log.h"
 #include "YBaseLib/ByteStream.h"
+#include "YBaseLib/NumericLimits.h"
 #include <cstdio>
 Log_SetChannel(ProgressCallbacks);
 

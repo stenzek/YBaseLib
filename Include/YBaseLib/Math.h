@@ -1,6 +1,7 @@
 #pragma once
 #include "YBaseLib/Common.h"
 #include "YBaseLib/Memory.h"
+#include "YBaseLib/NumericLimits.h"
 
 //---------------------------------------------------------------------------------------------------------------------
 // defines
