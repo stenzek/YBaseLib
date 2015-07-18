@@ -1,0 +1,13 @@
+# Use native line endings for source files
+*.c text
+*.cpp text
+*.h text
+*.hpp text
+
+# Visual Studio files maintain CRLF line endings
+*.sln text eol=crlf
+*.vcproj text eol=crlf
+*.vcproj.filters text eol=crlf
+*.bat eol=crlf
+*.rc eol=crlf
+
