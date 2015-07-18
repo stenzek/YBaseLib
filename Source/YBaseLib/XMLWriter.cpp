@@ -3,7 +3,7 @@
 #ifdef HAVE_LIBXML2
 #include "YBaseLib/Log.h"
 #include "YBaseLib/Assert.h"
-#include "YBaseLib/CRTString.h"
+#include "YBaseLib/CString.h"
 #include "YBaseLib/Memory.h"
 #include <libxml/xmlwriter.h>
 Log_SetChannel(XMLWriter);

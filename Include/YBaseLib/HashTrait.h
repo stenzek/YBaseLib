@@ -23,8 +23,5 @@ class String;
 DECLARE_HASHTRAIT_BYREF(String);
 //DECLARE_HASHTRAIT_BYVAL(char *);
 
-#undef DECLARE_HASHTRAIT_BYVAL
-#undef DECLARE_HASHTRAIT_BYREF
-
 // built-in hash function for a pointer type
 template<typename KEYTYPE> struct HashTrait<KEYTYPE *> { static HashType GetHash(const KEYTYPE *Value) { return (HashType)Value; } };
