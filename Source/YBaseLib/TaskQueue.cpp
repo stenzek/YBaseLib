@@ -1,0 +1,453 @@
+#include "YBaseLib/TaskQueue.h"
+#include "YBaseLib/String.h"
+#include "YBaseLib/Memory.h"
+
+TaskQueue::TaskQueue()
+    : m_creatorThreadID(0)
+    , m_workerThreadExitFlag(true)
+    , m_activeThreadPoolTasks(0)
+    , m_threadPoolYieldToOtherJobs(false)
+    , m_activeWorkerThreads(0)
+    , m_taskQueueSize(0)
+    , m_barrier(2)
+{
+
+}
+
+TaskQueue::~TaskQueue()
+{
+    // cleanup thread pool tasks
+    if (m_pThreadPool != nullptr)
+    {
+        for (;;)
+        {
+            m_queueLock.Lock();
+            if (m_activeThreadPoolTasks == 0)
+                break;
+
+            // loop until empty
+            m_queueLock.Unlock();
+            Thread::Yield();
+            continue;
+        }
+
+        // tasks are now done, so kill off the references
+        while (m_threadPoolTasks.GetSize() > 0)
+        {
+            ThreadPoolTask *pTask = m_threadPoolTasks.PopBack();
+            pTask->Release();
+        }
+
+        // release lock
+        m_queueLock.Unlock();
+    }
+
+    // cleanup queue and end threads
+    ExitWorkers();
+
+    // the queue should be empty at this point
+    DebugAssert(FifoIsEmpty());
+}
+
+bool TaskQueue::Initialize(uint32 taskQueueSize /* = DefaultQueueSize */, uint32 workerThreadCount /* = 1 */)
+{
+    DebugAssert(m_workerThreadExitFlag && m_workerThreads.IsEmpty() && m_pThreadPool == nullptr);
+    m_creatorThreadID = Thread::GetCurrentThreadId();
+
+    // allocate queue
+    AllocateQueue(taskQueueSize);
+
+    // create worker threads
+    if (workerThreadCount > 0)
+    {
+        // prevent threads exiting
+        m_workerThreadExitFlag = false;
+        MemoryBarrier();
+
+        // create the workers
+        for (uint32 i = 0; i < workerThreadCount; i++)
+        {
+            WorkerThread *pThread = new WorkerThread(this);
+            if (!pThread->Start())
+            {
+                // cleanup the remaining threads
+                delete pThread;
+                ExitWorkers();
+                return false;
+            }
+
+            // store thread
+            m_workerThreads.Add(pThread);
+        }
+    }
+
+    return true;
+}
+
+bool TaskQueue::Initialize(ThreadPool *pThreadPool, uint32 taskQueueSize /* = DefaultQueueSize */, bool yieldToOtherJobs /* = false */)
+{
+    DebugAssert(m_workerThreadExitFlag && m_workerThreads.IsEmpty() && m_pThreadPool == nullptr);
+    m_creatorThreadID = Thread::GetCurrentThreadId();
+    m_pThreadPool = pThreadPool;
+
+    // allocate queue
+    AllocateQueue(taskQueueSize);
+
+    // allocate thread pool tasks, with a kept reference so that we can re-use them.
+    uint32 taskCount = m_pThreadPool->GetWorkerThreadCount();
+    m_threadPoolTasks.Resize(taskCount);
+    for (uint32 i = 0; i < taskCount; i++)
+        m_threadPoolTasks[i] = new ThreadPoolTask(this);
+
+    // all done for now
+    m_threadPoolYieldToOtherJobs = yieldToOtherJobs;
+    return true;
+}
+
+void TaskQueue::AllocateQueue(uint32 size)
+{
+    m_taskQueueSize = size;
+    if (size > 0)
+    {
+        // todo: allocate fifo
+    }
+}
+
+void TaskQueue::ExitWorkers()
+{
+    // if there's no workers, just drain the queue
+    if (m_workerThreads.IsEmpty())
+    {
+        ExecuteQueuedTasks();
+        return;
+    }
+
+    // pause the workers, draining the queue
+    PauseWorkers();
+
+    // set the worker exit flag, and wake all workers
+    m_workerThreadExitFlag = true;
+    m_conditionVariable.WakeAll();
+    ResumeWorkers();
+
+    // join each thread
+    while (m_workerThreads.GetSize() > 0)
+    {
+        WorkerThread *pThread = m_workerThreads.PopBack();
+        pThread->Join();
+        delete pThread;
+    }
+}
+
+void TaskQueue::PauseWorkers()
+{
+    if (m_workerThreads.IsEmpty())
+    {
+        ExecuteQueuedTasks();
+        return;
+    }
+
+    // drain the queue, then pause the thread by holding the lock
+    for (;;)
+    {
+        m_queueLock.Lock();
+
+        // queue has entries? wait for the worker to sleep
+        if (!FifoIsEmpty() || m_activeWorkerThreads > 0)
+        {
+            if (m_activeWorkerThreads == 0)
+            {
+                m_conditionVariable.Wake();
+                //Log::GetInstance().Write("w", LOGLEVEL_DEV, "Woke CV");
+            }
+            m_queueLock.Unlock();
+            Thread::Yield();
+            continue;
+        }
+        else
+        {
+            // leave the queue locked
+            break;
+        }
+    }
+}
+
+void TaskQueue::ResumeWorkers()
+{
+    if (m_workerThreads.IsEmpty())
+        return;
+
+    // unlock queue, any workers that were woken should be allowed to continue
+    m_queueLock.Unlock();
+}
+
+void TaskQueue::QueueTask(Task *pTask, uint32 taskSize)
+{
+    if (m_taskQueueSize == 0)
+    {
+        pTask->Execute();
+        return;
+    }
+
+    LockQueueForNewTask();
+
+    // write @TODO(this should be a template function calling copy operator..)
+    void *task = FifoAllocateTask(taskSize, false);
+    Y_memcpy(task, pTask, taskSize);
+
+    UnlockQueueForNewTask();
+}
+
+void TaskQueue::QueueBlockingTask(Task *pTask, uint32 taskSize)
+{
+    if (m_taskQueueSize == 0 || m_workerThreads.IsEmpty())
+    {
+        pTask->Execute();
+        return;
+    }
+
+    // currently blocking events are only supported coming from the main thread
+    DebugAssert(Thread::GetCurrentThreadId() == m_creatorThreadID);
+
+    // lock before write
+    LockQueueForNewTask();
+
+    // write @TODO(this should be a template function calling copy operator..)
+    void *task = FifoAllocateTask(taskSize, true);
+    Y_memcpy(task, pTask, taskSize);
+
+    // unlock
+    UnlockQueueForNewTask();
+
+    // block
+    m_barrier.Wait();
+}
+
+bool TaskQueue::ExecuteQueuedTasks()
+{
+    bool result = false;
+    m_queueLock.Lock();
+
+    // loop
+    for (;;)
+    {
+        FifoQueueEntryHeader *taskHdr = FifoGetNextTask();
+        if (taskHdr == nullptr)
+        {
+            // if there's still outstanding tasks, yield and search again
+            if (m_activeWorkerThreads > 0 || m_activeThreadPoolTasks > 0)
+            {
+                m_queueLock.Unlock();
+                Thread::Yield();
+                m_queueLock.Lock();
+                continue;
+            }
+
+            // all tasks done
+            break;
+        }
+
+        // unlock queue while the task runs
+        m_queueLock.Unlock();
+
+        // run task
+        taskHdr->pTask->Execute();
+
+        // re-lock queue
+        m_queueLock.Lock();
+
+        // pop the task off the queue
+        FifoReleaseTask(taskHdr);
+        result = true;
+    }
+
+    m_queueLock.Unlock();
+    return result;
+}
+
+TaskQueue::WorkerThread::WorkerThread(TaskQueue *pParent)
+    : m_this(pParent)
+{
+
+}
+
+int TaskQueue::WorkerThread::ThreadEntryPoint()
+{
+    // initialize thread name
+    Thread::SetDebugName(String::FromFormat("Task Queue %p Worker", m_this));
+
+    // start with it locked
+    m_this->m_queueLock.Lock();
+    m_this->m_activeWorkerThreads++;
+    MemoryBarrier();
+
+    // loop
+    for (;;)
+    {
+        // get the next task
+        FifoQueueEntryHeader *taskHdr = m_this->FifoGetNextTask();
+        if (taskHdr == nullptr)
+        {
+            // no next task, are we exiting?
+            if (m_this->m_workerThreadExitFlag)
+                break;
+
+            // this thread is now inactive
+            m_this->m_activeWorkerThreads--;
+            MemoryBarrier();
+
+            // wait until there is a new event
+            m_this->m_conditionVariable.SleepAndRelease(&m_this->m_queueLock);
+
+            // this thread is now active
+            m_this->m_activeWorkerThreads++;
+            MemoryBarrier();
+            continue;
+        }
+
+        // release queue lock
+        m_this->m_queueLock.Unlock();
+
+        // run the task
+        taskHdr->pTask->Execute();
+        if (taskHdr->BlockingEvent)
+            m_this->m_barrier.Wait();
+
+        // hold lock again
+        m_this->m_queueLock.Lock();
+
+        // destruct the task
+        m_this->FifoReleaseTask(taskHdr);
+    }
+
+    m_this->m_activeWorkerThreads--;
+    MemoryBarrier();
+
+    m_this->m_queueLock.Unlock();
+    return 0;
+}
+
+TaskQueue::ThreadPoolTask::ThreadPoolTask(TaskQueue *pParent)
+    : ThreadPoolWorkItem(),
+      m_this(pParent),
+      m_active(false)
+{
+
+}
+
+int32 TaskQueue::ThreadPoolTask::ProcessWork()
+{
+    m_this->m_queueLock.Lock();
+
+    // loop until there are no tasks left
+    for (;;)
+    {
+        // get the next task
+        FifoQueueEntryHeader *taskHdr = m_this->FifoGetNextTask();
+        if (taskHdr == nullptr)
+            break;
+
+        // release queue lock
+        m_this->m_queueLock.Unlock();
+
+        // run the task
+        taskHdr->pTask->Execute();
+        if (taskHdr->BlockingEvent)
+            m_this->m_barrier.Wait();
+
+        // hold lock again
+        m_this->m_queueLock.Lock();
+
+        // destruct the task
+        m_this->FifoReleaseTask(taskHdr);
+
+        // check if we should yield
+        if (m_this->m_threadPoolYieldToOtherJobs && m_this->m_pThreadPool->ShouldYieldToOtherTask())
+            break;
+    }
+
+    // this task is no longer active
+    DebugAssert(m_this->m_activeThreadPoolTasks > 0);
+    m_this->m_activeThreadPoolTasks--;
+    m_active = false;
+
+    // end of this task's work
+    m_this->m_queueLock.Unlock();
+    return 0;
+}
+
+
+void TaskQueue::LockQueueForNewTask()
+{
+    m_queueLock.Lock();
+}
+
+void TaskQueue::UnlockQueueForNewTask()
+{
+    DebugAssert(m_taskQueue.GetSize() > 0);
+
+    if (m_pThreadPool != nullptr)
+    {
+        bool queueTask = (m_activeThreadPoolTasks < m_threadPoolTasks.GetSize());
+        if (queueTask)
+        {
+            // find a free task
+            for (uint32 i = 0; i < m_threadPoolTasks.GetSize(); i++)
+            {
+                ThreadPoolTask *pTask = m_threadPoolTasks[i];
+                if (!pTask->IsActive())
+                {
+                    // enqueue it
+                    pTask->SetActive();
+                    m_activeThreadPoolTasks++;
+                    m_pThreadPool->EnqueueWorkItem(pTask);
+                    break;
+                }
+            }
+        }
+        
+        // release lock
+        m_queueLock.Unlock();
+    }
+    else
+    {
+        if (m_activeWorkerThreads < m_workerThreads.GetSize())
+            m_conditionVariable.Wake();
+
+        m_queueLock.Unlock();
+    }
+}
+
+void *TaskQueue::FifoAllocateTask(uint32 size, bool blockingEvent)
+{
+    // @TODO(switch to circular buffer)
+    // allocate entry
+    FifoQueueEntryHeader *hdr = (FifoQueueEntryHeader *)Y_malloc(sizeof(FifoQueueEntryHeader) + size);
+    hdr->pTask = reinterpret_cast<Task *>(hdr + 1);
+    hdr->Size = size;
+    hdr->BlockingEvent = blockingEvent;
+    m_taskQueue.Add(hdr);
+    return hdr->pTask;
+}
+
+bool TaskQueue::FifoIsEmpty() const
+{
+    return m_taskQueue.IsEmpty();
+}
+
+TaskQueue::FifoQueueEntryHeader *TaskQueue::FifoGetNextTask()
+{
+    if (m_taskQueue.GetSize() == 0)
+        return nullptr;
+
+    return m_taskQueue.PopFront();
+}
+
+void TaskQueue::FifoReleaseTask(FifoQueueEntryHeader *taskHdr)
+{
+    // destruct the task
+    // @TODO(track completed flag in task header, when removing from queue, squish as many tasks as possible, freeing from the buffer)
+    taskHdr->pTask->~Task();
+    Y_free(taskHdr);
+}
+
