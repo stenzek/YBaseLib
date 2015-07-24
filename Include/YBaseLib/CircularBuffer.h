@@ -9,8 +9,9 @@ class CircularBuffer
     DeclareNonCopyable(CircularBuffer);
 
 public:
-    CircularBuffer(byte *pBuffer, size_t bufferSize);
+    CircularBuffer();
     CircularBuffer(size_t bufferSize);
+    CircularBuffer(byte *pBuffer, size_t bufferSize);
     ~CircularBuffer();
 
     // Total size of buffer
@@ -21,6 +22,9 @@ public:
 
     // Current data size in the buffer.
     size_t GetBufferUsed() const;
+
+    // Resize the buffer. Currently can only increase size and not decrease.
+    void ResizeBuffer(size_t newBufferSize);
 
     // Read bytes from the buffer. Only will return true upon completing the entire read.
     bool Read(void *pDestination, size_t byteCount);

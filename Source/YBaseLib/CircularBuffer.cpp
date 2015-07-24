@@ -2,6 +2,29 @@
 #include "YBaseLib/Memory.h"
 #include "YBaseLib/Assert.h"
 
+CircularBuffer::CircularBuffer()
+    : m_pBuffer(nullptr)
+    , m_pRegionAHead(m_pBuffer)
+    , m_pRegionATail(m_pBuffer)
+    , m_pRegionBTail(nullptr)
+    , m_bufferSize(0)
+{
+
+}
+
+CircularBuffer::CircularBuffer(size_t bufferSize)
+    : m_pBuffer(nullptr)
+    , m_pRegionAHead(m_pBuffer)
+    , m_pRegionATail(m_pBuffer)
+    , m_pRegionBTail(nullptr)
+    , m_bufferSize(bufferSize)
+    , m_ownsBuffer(true)
+{
+    // @TODO safe malloc
+    DebugAssert(bufferSize > 0);
+    m_pBuffer = (byte *)Y_malloc(bufferSize);
+}
+
 CircularBuffer::CircularBuffer(byte *pBuffer, size_t bufferSize)
     : m_pBuffer(pBuffer)
     , m_pRegionAHead(m_pBuffer)
@@ -12,21 +35,27 @@ CircularBuffer::CircularBuffer(byte *pBuffer, size_t bufferSize)
 
 }
 
-CircularBuffer::CircularBuffer(size_t bufferSize)
-    : m_pBuffer(new byte[bufferSize])
-    , m_pRegionAHead(m_pBuffer)
-    , m_pRegionATail(m_pBuffer)
-    , m_pRegionBTail(nullptr)
-    , m_bufferSize(bufferSize)
-    , m_ownsBuffer(true)
-{
-    
-}
-
 CircularBuffer::~CircularBuffer()
 {
     if (m_ownsBuffer)
-        delete[] m_pBuffer;
+        Y_free(m_pBuffer);
+}
+
+void CircularBuffer::ResizeBuffer(size_t newBufferSize)
+{
+    DebugAssert(m_ownsBuffer && newBufferSize >= m_bufferSize);
+    byte *pNewBuffer = (byte *)Y_realloc(m_pBuffer, newBufferSize);
+
+    // re-align pointers to new buffer
+    DebugAssert(pNewBuffer != nullptr);
+    m_pRegionAHead = (m_pRegionAHead - m_pBuffer) + pNewBuffer;
+    m_pRegionATail = (m_pRegionATail - m_pBuffer) + pNewBuffer;
+    if (m_pRegionBTail != nullptr)
+        m_pRegionBTail = (m_pRegionBTail - m_pBuffer) + pNewBuffer;
+    
+    // swap base pointer
+    m_pBuffer = pNewBuffer;
+    m_bufferSize = newBufferSize;
 }
 
 size_t CircularBuffer::GetBufferSpace() const
