@@ -4,6 +4,7 @@
 #include "YBaseLib/ThreadPool.h"
 #include "YBaseLib/RecursiveMutex.h"
 #include "YBaseLib/Barrier.h"
+#include "YBaseLib/CircularBuffer.h"
 
 // Thread-safe task queue
 
@@ -154,9 +155,9 @@ private:
     // fifo queue entry
     struct FifoQueueEntryHeader
     {
-        Task *pTask;
         uint32 Size;
         bool BlockingEvent;
+        bool CompletedFlag;
     };
 
     // allocate the queue
@@ -194,10 +195,9 @@ private:
     bool m_threadPoolYieldToOtherJobs;
 
     // fifo members
-    PODArray<FifoQueueEntryHeader *> m_taskQueue;
+    CircularBuffer m_taskQueueBuffer;
     RecursiveMutex m_queueLock;
     volatile uint32 m_activeWorkerThreads;
-    uint32 m_taskQueueSize;
 
     // events
     ConditionVariable m_conditionVariable;

@@ -8,7 +8,6 @@ TaskQueue::TaskQueue()
     , m_activeThreadPoolTasks(0)
     , m_threadPoolYieldToOtherJobs(false)
     , m_activeWorkerThreads(0)
-    , m_taskQueueSize(0)
     , m_barrier(2)
 {
 
@@ -106,11 +105,8 @@ bool TaskQueue::Initialize(ThreadPool *pThreadPool, uint32 taskQueueSize /* = De
 
 void TaskQueue::AllocateQueue(uint32 size)
 {
-    m_taskQueueSize = size;
     if (size > 0)
-    {
-        // todo: allocate fifo
-    }
+        m_taskQueueBuffer.ResizeBuffer(size);
 }
 
 void TaskQueue::ExitWorkers()
@@ -183,7 +179,7 @@ void TaskQueue::ResumeWorkers()
 
 void TaskQueue::QueueTask(Task *pTask, uint32 taskSize)
 {
-    if (m_taskQueueSize == 0)
+    if (m_taskQueueBuffer.GetBufferSize() == 0)
     {
         pTask->Execute();
         return;
@@ -200,7 +196,7 @@ void TaskQueue::QueueTask(Task *pTask, uint32 taskSize)
 
 void TaskQueue::QueueBlockingTask(Task *pTask, uint32 taskSize)
 {
-    if (m_taskQueueSize == 0 || m_workerThreads.IsEmpty())
+    if (m_taskQueueBuffer.GetBufferSize() == 0 || m_workerThreads.IsEmpty())
     {
         pTask->Execute();
         return;
@@ -250,8 +246,10 @@ bool TaskQueue::ExecuteQueuedTasks()
         // unlock queue while the task runs
         m_queueLock.Unlock();
 
-        // run task
-        taskHdr->pTask->Execute();
+        // run the task
+        Task *pTask = reinterpret_cast<Task *>(taskHdr + 1);
+        pTask->Execute();
+        pTask->~Task();
 
         // re-lock queue
         m_queueLock.Lock();
@@ -309,7 +307,11 @@ int TaskQueue::WorkerThread::ThreadEntryPoint()
         m_this->m_queueLock.Unlock();
 
         // run the task
-        taskHdr->pTask->Execute();
+        Task *pTask = reinterpret_cast<Task *>(taskHdr + 1);
+        pTask->Execute();
+        pTask->~Task();
+
+        // handle blocking events
         if (taskHdr->BlockingEvent)
             m_this->m_barrier.Wait();
 
@@ -351,7 +353,11 @@ int32 TaskQueue::ThreadPoolTask::ProcessWork()
         m_this->m_queueLock.Unlock();
 
         // run the task
-        taskHdr->pTask->Execute();
+        Task *pTask = reinterpret_cast<Task *>(taskHdr + 1);
+        pTask->Execute();
+        pTask->~Task();
+
+        // handle blocking events
         if (taskHdr->BlockingEvent)
             m_this->m_barrier.Wait();
 
@@ -384,7 +390,7 @@ void TaskQueue::LockQueueForNewTask()
 
 void TaskQueue::UnlockQueueForNewTask()
 {
-    DebugAssert(m_taskQueue.GetSize() > 0);
+    DebugAssert(m_taskQueueBuffer.GetBufferSize() > 0);
 
     if (m_pThreadPool != nullptr)
     {
@@ -420,34 +426,68 @@ void TaskQueue::UnlockQueueForNewTask()
 
 void *TaskQueue::FifoAllocateTask(uint32 size, bool blockingEvent)
 {
-    // @TODO(switch to circular buffer)
-    // allocate entry
-    FifoQueueEntryHeader *hdr = (FifoQueueEntryHeader *)Y_malloc(sizeof(FifoQueueEntryHeader) + size);
-    hdr->pTask = reinterpret_cast<Task *>(hdr + 1);
-    hdr->Size = size;
+    void *pWritePointer;
+    size_t requiredSpace = sizeof(FifoQueueEntryHeader) + size;
+    size_t freeSpace;
+
+    while (!m_taskQueueBuffer.GetWritePointer(&pWritePointer, &freeSpace) || freeSpace < requiredSpace)
+    {
+        // need to wait until the queue is empty @TODO find a more efficient way of doing this that doesn't spin
+        m_queueLock.Unlock();
+        Thread::Yield();
+        m_queueLock.Lock();
+    }
+
+    // move buffer forward
+    m_taskQueueBuffer.MoveWritePointer(requiredSpace);
+
+    // fill in header details
+    FifoQueueEntryHeader *hdr = reinterpret_cast<FifoQueueEntryHeader *>(pWritePointer);
+    hdr->Size = sizeof(FifoQueueEntryHeader) + size;
     hdr->BlockingEvent = blockingEvent;
-    m_taskQueue.Add(hdr);
-    return hdr->pTask;
+    hdr->CompletedFlag = false;
+    return (hdr + 1);
 }
 
 bool TaskQueue::FifoIsEmpty() const
 {
-    return m_taskQueue.IsEmpty();
+    return m_taskQueueBuffer.GetBufferUsed() == 0;
 }
 
 TaskQueue::FifoQueueEntryHeader *TaskQueue::FifoGetNextTask()
 {
-    if (m_taskQueue.GetSize() == 0)
-        return nullptr;
+    const void *pReadPointer;
+    size_t availableBytes;
+    if (!m_taskQueueBuffer.GetReadPointer(&pReadPointer, &availableBytes))
+        return false;
 
-    return m_taskQueue.PopFront();
+    const FifoQueueEntryHeader *hdr = reinterpret_cast<const FifoQueueEntryHeader *>(pReadPointer);
+    DebugAssert(!hdr->CompletedFlag && availableBytes >= hdr->Size);
+    return const_cast<FifoQueueEntryHeader *>(hdr);
 }
 
 void TaskQueue::FifoReleaseTask(FifoQueueEntryHeader *taskHdr)
 {
-    // destruct the task
-    // @TODO(track completed flag in task header, when removing from queue, squish as many tasks as possible, freeing from the buffer)
-    taskHdr->pTask->~Task();
-    Y_free(taskHdr);
+    // flag as completed
+    taskHdr->CompletedFlag = true;
+
+    // re-obtain the head of the queue
+    const void *pReadPointer;
+    size_t availableBytes;
+    if (!m_taskQueueBuffer.GetReadPointer(&pReadPointer, &availableBytes))
+        Panic("FIFO corruption");
+
+    // squish this task, and remove as many as possible
+    size_t bytesToRemove = 0;
+    DebugAssert(taskHdr->CompletedFlag);
+    while (taskHdr->CompletedFlag)
+    {
+        bytesToRemove += taskHdr->Size;
+        taskHdr = reinterpret_cast<FifoQueueEntryHeader *>(reinterpret_cast<byte *>(taskHdr) + taskHdr->Size);
+    }
+
+    // free from the buffer
+    DebugAssert(bytesToRemove <= availableBytes);
+    m_taskQueueBuffer.MoveReadPointer(availableBytes);
 }
 
