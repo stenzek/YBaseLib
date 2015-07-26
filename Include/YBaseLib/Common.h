@@ -269,13 +269,16 @@
     typedef uint64_t uint64;
 #endif
 
+// allow usage of std::move/forward without the namespace
+using std::move;
+using std::forward;
+
 // templated helpers
-template<typename T> static inline T Move(T &r) { return std::move(r); }
 template<typename T> static inline T Min(T a, T b) { return (a < b) ? a : b; }
 template<typename T> static inline T Max(T a, T b) { return (a > b) ? a : b; }
 template<typename T> static inline void Swap(T &rt1, T &rt2)
 {
-    T tmp(Move(rt1));
+    T tmp(move(rt1));
     rt1 = rt2;
     rt2 = tmp;
 }
