@@ -1834,7 +1834,7 @@ bool ZipArchive::ParseZip()
         uint16 filenameLength;
         uint16 extraFieldLength;
         uint16 fileCommentLength;
-        uint16 diskNumber;
+        uint16 diskNumberCD;
         uint16 internalFileAttributes;
         uint32 externalFileAttributes;
         uint32 fileHeaderOffset;
@@ -1852,7 +1852,7 @@ bool ZipArchive::ParseZip()
             !binaryReader.SafeReadUInt16(&filenameLength) ||
             !binaryReader.SafeReadUInt16(&extraFieldLength) ||
             !binaryReader.SafeReadUInt16(&fileCommentLength) ||
-            !binaryReader.SafeReadUInt16(&diskNumber) ||
+            !binaryReader.SafeReadUInt16(&diskNumberCD) ||
             !binaryReader.SafeReadUInt16(&internalFileAttributes) ||
             !binaryReader.SafeReadUInt32(&externalFileAttributes) ||
             !binaryReader.SafeReadUInt32(&fileHeaderOffset) || 

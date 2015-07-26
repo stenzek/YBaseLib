@@ -270,11 +270,12 @@
 #endif
 
 // templated helpers
+template<typename T> static inline T Move(T &r) { return std::move(r); }
 template<typename T> static inline T Min(T a, T b) { return (a < b) ? a : b; }
 template<typename T> static inline T Max(T a, T b) { return (a > b) ? a : b; }
 template<typename T> static inline void Swap(T &rt1, T &rt2)
 {
-    T tmp = rt1;
+    T tmp(Move(rt1));
     rt1 = rt2;
     rt2 = tmp;
 }
@@ -285,10 +286,24 @@ template<typename T> static inline void Swap(T &rt1, T &rt2)
         private: \
         ClassType(const ClassType &) = delete; \
         ClassType &operator=(const ClassType &) = delete;
+
+    #define DeclareFastCopyable(ClassType) \
+        public: \
+        ClassType(const ClassType &_copy_) { Y_memcpy(this, &_copy_, sizeof(*this)); } \
+        ClassType(const ClassType &&_copy_) { Y_memcpy(this, &_copy_, sizeof(*this)); } \
+        ClassType &operator=(const ClassType &_copy_) { Y_memcpy(this, &_copy_, sizeof(*this)); } \
+        ClassType &operator=(const ClassType &&_copy_) { Y_memcpy(this, &_copy_, sizeof(*this)); }
+
 #else
     #define DeclareNonCopyable(ClassType) \
         private: \
         ClassType(const ClassType &); \
         ClassType &operator=(const ClassType &);
+
+    #define DeclareFastCopyable(ClassType) \
+        public: \
+        ClassType(const ClassType &_copy_) { Y_memcpy(this, &_copy_, sizeof(*this)); } \
+        ClassType &operator=(const ClassType &_copy_) { Y_memcpy(this, &_copy_, sizeof(*this)); } \
+
 #endif
 
