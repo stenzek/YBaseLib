@@ -179,7 +179,7 @@ Subprocess *Subprocess::Create(const char *executableFileName, const char *param
 
             // Execute the child process, if successful, this won't return
             int res = execl(executableFileName, executableFileName, NULL);
-            Log_ErrorPrintf("Subprocess::Create: exec failed: %d", res);
+            Log_ErrorPrintf("Subprocess::Create: exec(%s) failed: %d", executableFileName, res);
             _exit(-1);
         }
         else

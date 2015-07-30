@@ -97,8 +97,8 @@ static void CPUID_ReadCPUData(Y_CPUID_RESULT *pResult)
 
 static void CPUID_ReadCPUData(Y_CPUID_RESULT *pResult)
 {
-    Y_strncpy(pResult->VendorString, sizeof(pResult->VendorString, "JavaScript");
-    Y_strncpy(pResult->BrandString, sizeof(pResult->BrandString, "Emscripten");
+    Y_strncpy(pResult->VendorString, sizeof(pResult->VendorString), "JavaScript");
+    Y_strncpy(pResult->BrandString, sizeof(pResult->BrandString), "Emscripten");
 }
 
 #else
