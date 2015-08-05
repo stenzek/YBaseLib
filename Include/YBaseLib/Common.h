@@ -42,6 +42,9 @@
 #if defined(EMSCRIPTEN) || defined(__EMSCRIPTEN__)
     #define Y_PLATFORM_HTML5 1
     #define Y_PLATFORM_STR "HTML5"
+#elif defined(ANDROID) || defined(__ANDROID__)
+    #define Y_PLATFORM_ANDROID 1
+    #define Y_PLATFORM_STR "Android"
 #elif defined(WIN32) || defined(_WIN32)
     #define Y_PLATFORM_WINDOWS 1
     #define Y_PLATFORM_STR "Windows"
