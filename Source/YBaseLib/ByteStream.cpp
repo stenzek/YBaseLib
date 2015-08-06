@@ -180,7 +180,7 @@ public:
         return (uint64)Size;
     }
 
-#elif defined(Y_PLATFORM_POSIX) || defined(Y_PLATFORM_HTML5)
+#elif defined(Y_PLATFORM_POSIX) || defined(Y_PLATFORM_HTML5) || defined(Y_PLATFORM_ANDROID)
 
     virtual bool SeekAbsolute(uint64 Offset) override
     {
@@ -290,7 +290,7 @@ public:
                 Log_WarningPrintf("AtomicUpdatedFileByteStream::~AtomicUpdatedFileByteStream(): Failed to delete temporary file '%s'", m_temporaryFileName.GetCharArray());
 #else
             // delete the temporary file
-            if (unlink(m_temporaryFileName) < 0)
+            if (remove(m_temporaryFileName) < 0)
                 Log_WarningPrintf("AtomicUpdatedFileByteStream::~AtomicUpdatedFileByteStream(): Failed to delete temporary file '%s'", m_temporaryFileName.GetCharArray());
 #endif
         }

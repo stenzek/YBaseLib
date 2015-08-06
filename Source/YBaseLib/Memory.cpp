@@ -293,7 +293,7 @@ void Y_qsort_r(void *pBase, size_t nElements, size_t ElementSize, void *pContext
     qsort_r(pBase, nElements, ElementSize, pContext, CompareFunction);
 }
 
-#elif defined(Y_PLATFORM_HTML5)
+#elif defined(Y_PLATFORM_HTML5) || defined(Y_PLATFORM_ANDROID)
 
 // have to remap it.. this really needs a better solution :/
 struct RecursiveQSortData
@@ -302,7 +302,7 @@ struct RecursiveQSortData
     void *pRealUserData;
 };
 
-static RecursiveQSortData *g_pCurrentQSortData = nullptr;
+Y_DECLARE_THREAD_LOCAL(RecursiveQSortData *g_pCurrentQSortData) = nullptr;
 
 static int Y_qsort_trampoline(const void *pLeft, const void *pRight)
 {

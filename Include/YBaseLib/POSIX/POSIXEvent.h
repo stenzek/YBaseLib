@@ -14,8 +14,8 @@ public:
         pipe2(m_pipeFds, O_NONBLOCK);
 #else
         pipe(m_pipeFds);
-        fcntl(m_pipeFds[0], F_SETFL, O_NONBLOCK);
-        fcntl(m_pipeFds[1], F_SETFL, O_NONBLOCK);
+        fcntl(m_pipeFds[0], F_SETFL, fcntl(m_pipeFds[0], F_GETFL) | O_NONBLOCK);
+        fcntl(m_pipeFds[1], F_SETFL, fcntl(m_pipeFds[1], F_GETFL) | O_NONBLOCK);
 #endif
     }
 

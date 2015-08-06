@@ -10,6 +10,8 @@
     #include <unistd.h>     // sysconf
 #elif defined(Y_PLATFORM_FREEBSD)
     #error fixme
+#elif defined(Y_PLATFORM_ANDROID)
+    #include <unistd.h>
 #elif defined(Y_PLATFORM_HTML5)
     
 #else
@@ -93,6 +95,14 @@ static void CPUID_ReadCPUData(Y_CPUID_RESULT *pResult)
     *(uint32 *)(&pResult->BrandString[44]) = data[3];
 }
 
+#elif defined(Y_CPU_ARM)
+
+static void CPUID_ReadCPUData(Y_CPUID_RESULT *pResult)
+{
+    Y_strncpy(pResult->VendorString, sizeof(pResult->VendorString), "ARM");
+    Y_strncpy(pResult->BrandString, sizeof(pResult->BrandString), "ARM");
+}
+
 #elif defined(Y_PLATFORM_HTML5)
 
 static void CPUID_ReadCPUData(Y_CPUID_RESULT *pResult)
@@ -172,6 +182,10 @@ static void CPUID_ReadOSData(Y_CPUID_RESULT *pResult)
     
     pResult->ThreadCount = numCPU;
     pResult->ProcessorCount = numCPU;
+    pResult->ClockSpeed = 1;
+#elif defined(Y_PLATFORM_ANDROID)
+    pResult->ThreadCount = 1;
+    pResult->ProcessorCount = 1;
     pResult->ClockSpeed = 1;
 #elif defined(Y_PLATFORM_HTML5)
     pResult->ThreadCount = 1;

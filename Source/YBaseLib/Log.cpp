@@ -3,6 +3,12 @@
 #include "YBaseLib/CString.h"
 #include "YBaseLib/Assert.h"
 
+#if defined(Y_PLATFORM_WINDOWS)
+    #include "YBaseLib/Windows/WindowsHeaders.h"
+#elif defined(Y_PLATFORM_ANDROID)
+    #include <android/log.h>
+#endif
+
 Log *g_pLog = &Log::GetInstance();
 
 Log::Log()
@@ -125,6 +131,13 @@ static void ConsoleOutputLogCallback(void *UserParam, const char *ChannelName, L
     write(outputFd, "\n", 1);
 }
 
+#elif defined(Y_PLATFORM_ANDROID)
+
+static void ConsoleOutputLogCallback(void *UserParam, const char *ChannelName, LOGLEVEL Level, const char *Message)
+{
+
+}
+
 #elif defined(Y_PLATFORM_HTML5)
 
 static void ConsoleOutputLogCallback(void *UserParam, const char *ChannelName, LOGLEVEL Level, const char *Message)
@@ -201,6 +214,29 @@ static void DebugOutputLogCallback(void *UserParam, const char *ChannelName, LOG
 
 static void DebugOutputLogCallback(void *UserParam, const char *ChannelName, LOGLEVEL Level, const char *Message)
 {
+}
+
+#elif defined(Y_PLATFORM_ANDROID)
+
+static void DebugOutputLogCallback(void *UserParam, const char *ChannelName, LOGLEVEL Level, const char *Message)
+{
+    if (!s_bDebugOutputEnabled || Level > s_eDebugOutputLevelFilter || s_strDebugOutputChannelFilter.Find(ChannelName) >= 0)
+        return;
+
+    static const int logPriority[LOGLEVEL_COUNT] =
+    {
+        ANDROID_LOG_INFO,           // NONE
+        ANDROID_LOG_ERROR,          // ERROR
+        ANDROID_LOG_WARN,           // WARNING
+        ANDROID_LOG_INFO,           // SUCCESS
+        ANDROID_LOG_INFO,           // INFO
+        ANDROID_LOG_INFO,           // PERF
+        ANDROID_LOG_DEBUG,          // DEV
+        ANDROID_LOG_DEBUG,          // PROFILE
+        ANDROID_LOG_DEBUG,          // TRACE
+    };
+
+    __android_log_write(logPriority[Level], ChannelName, Message);
 }
 
 #elif defined(Y_PLATFORM_HTML5)

@@ -89,6 +89,10 @@
         #define Y_CPU_X86 1
         #define Y_CPU_STR "x86"
         #define Y_CPU_SSE_LEVEL 0
+    #elif defined(__arm__)
+        #define Y_CPU_ARM 1
+        #define Y_CPU_STR "ARM"
+        #define Y_CPU_SSE_LEVEL 0
     #else
         #error Could not detect CPU.
     #endif
@@ -184,7 +188,7 @@
 #elif defined(Y_COMPILER_GCC) || defined(Y_COMPILER_CLANG)
     #define Y_DECLARE_THREAD_LOCAL(decl) static __thread decl
 #elif defined(Y_COMPILER_EMSCRIPTEN)
-    #define Y_DECLARE_THREAD_LOCAL(decl) decl
+    #define Y_DECLARE_THREAD_LOCAL(decl) static decl
 #else
     #error Invalid compiler
 #endif
