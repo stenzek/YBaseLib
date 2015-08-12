@@ -37,7 +37,7 @@ double Y_TimerConvertToSeconds(Y_TIMER_VALUE Value)
     return (((double)Value / g_dCounterFrequency) / 1000000000.0);
 }
 
-#elif defined(Y_PLATFORM_POSIX)
+#elif defined(Y_PLATFORM_POSIX) || defined(Y_PLATFORM_ANDROID)
 
 #include <sys/time.h>
 

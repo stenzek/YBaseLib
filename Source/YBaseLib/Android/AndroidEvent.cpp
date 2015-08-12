@@ -1,6 +1,9 @@
-#pragma once
 #include "YBaseLib/Common.h"
 #include "YBaseLib/Assert.h"
+
+#ifdef Y_PLATFORM_ANDROID
+
+#include "YBaseLib/Android/AndroidEvent.h"
 #include <poll.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -36,7 +39,7 @@ void Event::Wait()
         Reset();
 }
 
-void Event::TryWait(uint32 timeout)
+bool Event::TryWait(uint32 timeout)
 {
     pollfd pollDescriptors;
     pollDescriptors.fd = m_pipeFds[0];
@@ -69,3 +72,5 @@ void Event::WaitForMultipleEvents(Event **ppEvents, uint32 nEvents)
         poll(&pollDescriptors, 1, -1);
     }
 }
+
+#endif      // Y_PLATFORM_ANDROID
