@@ -147,7 +147,7 @@ public:
         return true;
     }
 
-    void Copy(const BitSet &other) const
+    void Copy(const BitSet &other)
     {
         if (m_valueCount != other.m_bitCount)
             Resize(other.m_bitCount);
@@ -157,11 +157,11 @@ public:
             Y_memcpy(m_values, other.m_values, sizeof(TYPE) * m_valueCount);
     }
 
-    void Swap(const BitSet &other) const
+    void Swap(BitSet &other)
     {
-        Swap(m_bitCount, other.m_bitCount);
-        Swap(m_valueCount, other.m_valueCount);
-        Swap(m_values, other.m_values);
+        ::Swap(m_bitCount, other.m_bitCount);
+        ::Swap(m_valueCount, other.m_valueCount);
+        ::Swap(m_values, other.m_values);
     }
 
     void Combine(const BitSet &other)
@@ -284,6 +284,14 @@ public:
         }
 
         return false;
+    }
+
+    size_t Cardinality() const
+    {
+        size_t count = 0;
+        for (size_t i = 0; i < m_valueCount; i++)
+            count += (size_t)Y_popcnt(m_values[i]);
+        return count;
     }
 
     // wrapper for operator[]

@@ -420,6 +420,64 @@ bool Y_bitscanforward(uint8 mask, uint32 *index)
     return false;
 }
 
+bool Y_bitscanforward(uint16 mask, uint32 *index)
+{
+    if (Y_bitscanforward((uint8)mask, index))
+        return true;
+
+    if (Y_bitscanforward((uint8)(mask >> 8), index))
+    {
+        *index += 8;
+        return true;
+    }
+
+    return false;
+}
+
+uint32 Y_popcnt(uint8 value)
+{
+    // eek, the branches! find a better way of doing this.
+    uint32 count = 0;
+    if (value & 0x01)
+        count++;
+    if (value & 0x02)
+        count++;
+    if (value & 0x04)
+        count++;
+    if (value & 0x08)
+        count++;
+    if (value & 0x10)
+        count++;
+    if (value & 0x20)
+        count++;
+    if (value & 0x40)
+        count++;
+    if (value & 0x80)
+        count++;
+    return count;
+}
+
+uint32 Y_popcnt(uint16 value)
+{
+    return Y_popcnt((uint8)value) + Y_popcnt((uint8)(value >> 8));
+}
+
+uint32 Y_popcnt(uint32 value)
+{
+    // http://stackoverflow.com/questions/355967/how-to-use-msvc-intrinsics-to-get-the-equivalent-of-this-gcc-code
+    value -= ((value >> 1) & 0x55555555);
+    value = (((value >> 2) & 0x33333333) + (value & 0x33333333));
+    value = (((value >> 4) + value) & 0x0f0f0f0f);
+    value += (value >> 8);
+    value += (value >> 16);
+    return value & 0x0000003f;
+}
+
+uint32 Y_popcnt(uint64 value)
+{
+    return Y_popcnt((uint32)value) + Y_popcnt((uint32)(value >> 32));
+}
+
 #ifdef Y_COMPILER_MSVC
 
 bool Y_bitscanforward(uint32 mask, uint32 *index)
