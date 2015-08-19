@@ -16,5 +16,8 @@
     <ClCompile Include="TestSuites\TestBase64.cpp">
       <Filter>Test Suites</Filter>
     </ClCompile>
+    <ClCompile Include="TestSuites\TestBitSet.cpp">
+      <Filter>Test Suites</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

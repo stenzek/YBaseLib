@@ -3,400 +3,321 @@
 #include "YBaseLib/Memory.h"
 #include "YBaseLib/Assert.h"
 
-class BitSet8
+template<typename TYPE>
+class BitSet
 {
 public:
-    BitSet8()
-    {
-        m_bitSize = 0;
-        m_byteSize = 0;
-        m_pHeapPtr = nullptr;
-        m_pPointer = nullptr;
-    }
+    const size_t BITS_PER_VALUE = sizeof(TYPE) * 8;
 
-    BitSet8(const BitSet8 &copy)
-        : m_pHeapPtr(nullptr),
-          m_pPointer(nullptr),
-          m_byteSize(0),
-          m_bitSize(0)
-    {
-        Copy(copy);
-    }
-
-    BitSet8(uint32 length)
-    {
-        m_bitSize = length;
-        m_byteSize = length / 8 + 1; 
-        m_pHeapPtr = new uint8[m_byteSize];
-        Y_memzero(m_pHeapPtr, sizeof(uint8) * m_byteSize);
-        m_pPointer = m_pHeapPtr;
-    }
-
-    // ptr should be at least length/8+1 bytes long.
-    BitSet8(uint8 *ptr, uint32 byteLength, uint32 bitLength)
-    {
-        m_bitSize = bitLength;
-        m_byteSize = byteLength;
-        m_pHeapPtr = NULL;
-        m_pPointer = ptr;
-    }
-
-    ~BitSet8()
-    {
-        delete[] m_pHeapPtr;
-    }
-
-    inline bool operator[](uint32 index) const { return _IsSet(index); }
-    inline void operator|=(uint32 index) { _Set(index); }
-    inline void operator&=(uint32 index) { _Unset(index); }
-    inline bool operator&(const BitSet8 &other) const { return TestSetsAnd(other); }
-    inline bool operator==(const BitSet8 &other) const { return TestSetsEqual(other); }
-    inline void operator|=(const BitSet8 &other) { _Combine(other); }
-    inline void operator&=(const BitSet8 &other) { _Mask(other); }
-    inline BitSet8 &operator=(const BitSet8 &other) { Copy(other); return *this; }
-
-    inline const uint8 *GetPointer() const { return m_pPointer; }
-    inline const uint32 GetByteCount() const { return m_byteSize; }
-    inline uint8 *GetPointer() { return m_pPointer; }
-
-    inline bool IsSet(uint32 index) const { return _IsSet(index); }
-    inline void Set(uint32 index) { _Set(index); }
-    inline void Unset(uint32 index) { _Unset(index); }
-
-    void Clear()
-    {
-        Y_memzero(m_pHeapPtr, sizeof(uint8) * m_byteSize);
-    }
-
-    void Resize(uint32 length)
-    {
-        uint32 newByteSize = length / 8 + 1; 
-
-        if (newByteSize != m_byteSize)
-        {
-            uint8 *pNewPointer = new uint8[newByteSize];
-            uint32 copyLength = Min(newByteSize, m_byteSize);
-            uint32 zeroLength = newByteSize - copyLength;
-            if (copyLength > 0)
-                Y_memcpy(pNewPointer, m_pPointer, sizeof(uint8) * copyLength);
-            if (zeroLength > 0)
-                Y_memzero(pNewPointer + copyLength, sizeof(uint8) * zeroLength);
-
-            delete[] m_pHeapPtr;
-            m_pHeapPtr = pNewPointer;
-            m_pPointer = pNewPointer;
-            m_byteSize = newByteSize;
-        }
-
-        m_bitSize = length;
-    }
-
-    bool TestSetsAnd(const BitSet8 &other) const
-    {
-        DebugAssert(other.m_byteSize == m_byteSize);
-        for (uint32 i = 0; i < m_byteSize; i++)
-        {
-            if ((m_pPointer[i] & other.m_pPointer[i]) != 0)
-                return true;
-        }
-
-        return false;
-    }
-
-    bool TestSetsEqual(const BitSet8 &other) const
-    {
-        DebugAssert(other.m_byteSize == m_byteSize);
-        for (uint32 i = 0; i < m_byteSize; i++)
-        {
-            if (m_pPointer[i] != other.m_pPointer[i])
-                return false;
-        }
-
-        return true;
-    }
-
-    void Copy(const BitSet8 &copy)
-    {
-        if (m_pHeapPtr != nullptr)
-            delete[] m_pHeapPtr;
-
-        if (copy.m_pPointer == nullptr)
-        {
-            m_bitSize = 0;
-            m_byteSize = 0;
-            m_pHeapPtr = NULL;
-            m_pPointer = NULL;
-        }
-        else
-        {
-            m_pPointer = m_pHeapPtr = new uint8[copy.m_byteSize];
-            m_bitSize = copy.m_bitSize;
-            m_byteSize = copy.m_byteSize;
-            Y_memcpy(m_pPointer, copy.m_pPointer, sizeof(uint8) * copy.m_byteSize);
-        }            
-    }
-
-    void Swap(BitSet8 &other)
-    {
-        if (m_pHeapPtr == nullptr || other.m_pHeapPtr == nullptr)
-        {
-            BitSet8 temp(*this);
-            Copy(other);
-            other.Copy(temp);
-        }
-        else
-        {
-            ::Swap(m_pHeapPtr, other.m_pHeapPtr);
-            ::Swap(m_pPointer, other.m_pPointer);
-            ::Swap(m_byteSize, other.m_byteSize);
-            ::Swap(m_bitSize, other.m_bitSize);
-        }
-    }
-
-private:
-    bool _IsSet(uint32 bit) const
-    {
-        uint32 arrayindex = (bit / 8);
-        uint8 mask = 1 << (bit % 8);
-        DebugAssert(bit < m_bitSize);
-        DebugAssert(arrayindex < m_byteSize);
-        return (m_pPointer[arrayindex] & mask) != 0;
-    }
-
-    void _Set(uint32 bit)
-    {
-        uint32 arrayindex = (bit / 8);
-        uint8 mask = 1 << (bit % 8);
-        DebugAssert(bit < m_bitSize);
-        DebugAssert(arrayindex < m_byteSize);
-        m_pPointer[arrayindex] |= mask;
-    }
-
-    void _Unset(uint32 bit)
-    {
-        uint32 arrayindex = (bit / 8);
-        uint8 mask = 1 << (bit % 8);
-        DebugAssert(bit < m_bitSize);
-        DebugAssert(arrayindex < m_byteSize);
-        m_pPointer[arrayindex] &= ~mask;
-    }
-
-    void _Combine(const BitSet8 &other)
-    {
-        DebugAssert(other.m_byteSize == m_byteSize);
-        for (uint32 i = 0; i < m_byteSize; i++)
-            m_pPointer[i] |= other.m_pPointer[i];
-    }
-
-    void _Mask(const BitSet8 &other)
-    {
-        DebugAssert(other.m_byteSize == m_byteSize);
-        for (uint32 i = 0; i < m_byteSize; i++)
-            m_pPointer[i] &= other.m_pPointer[i];
-    }
-
-    uint8 *m_pHeapPtr;
-    uint8 *m_pPointer;
-    uint32 m_byteSize;
-    uint32 m_bitSize;
-};
-
-class BitSet32
-{
 public:
-    BitSet32()
-        : m_pHeapPtr(nullptr),
-          m_pPointer(nullptr),
-          m_dwordSize(0),
-          m_bitSize(0)
+    BitSet()
+        : m_values(nullptr)
+        , m_valueCount(0)
+        , m_bitCount(0)
     {
 
     }
 
-    BitSet32(uint32 length)
+    BitSet(const BitSet &copy)
     {
-        m_bitSize = length;
-        m_dwordSize = length / 32 + 1; 
-        m_pHeapPtr = new uint32[m_dwordSize];
-        Y_memzero(m_pHeapPtr, sizeof(uint32) * m_dwordSize);
-        m_pPointer = m_pHeapPtr;
+        m_values = (copy.m_values != nullptr) ? (TYPE *)Y_reallocarray(nullptr, copy.m_valueCount, sizeof(TYPE)) : nullptr;
+        m_valueCount = copy.m_valueCount;
+        m_bitCount = copy.m_bitCount;
     }
+
+    BitSet(const BitSet &&from)
+    {
+        m_values = from.m_values;
+        from.m_values = nullptr;
+
+        m_valueCount = from.m_valueCount;
+        from.m_valueCount = 0;
+
+        m_bitCount = from.m_bitCount;
+        from.m_bitCount = 0;
+    }
+
+    BitSet(size_t bits)
+    {
+        m_values = nullptr;
+        m_valueCount = 0;
+        m_bitCount = 0;
+        Resize(bits);
+    }
+
+    ~BitSet()
+    {
+        Y_free(m_values);
+    }
+
+    TYPE *GetValuesPointer() { return m_values; }
+    const TYPE *GetValuesPointer() const { return m_values; }
+    const size_t GetValueCount() const { return m_valueCount; }
+    const size_t GetBitCount() const { return m_bitCount; }
     
-    BitSet32(const BitSet32 &other)
-        : m_pHeapPtr(nullptr),
-          m_pPointer(nullptr),
-          m_dwordSize(0),
-          m_bitSize(0)
-    {
-        Copy(other);
-    }
-
-    // ptr should be at least length/32+1 dwords long.
-    BitSet32(uint32 *ptr, uint32 byteLength, uint32 bitLength)
-    {
-        m_bitSize = bitLength;
-        m_dwordSize = byteLength;
-        m_pHeapPtr = NULL;
-        m_pPointer = ptr;
-    }
-
-    ~BitSet32()
-    {
-        delete[] m_pHeapPtr;
-    }
-
-    inline bool operator[](uint32 index) const { return _IsSet(index); }
-    inline void operator|=(uint32 index) { _Set(index); }
-    inline void operator&=(uint32 index) { _Unset(index); }
-    inline bool operator&(const BitSet32 &other) const { return TestSetsAnd(other); }
-    inline bool operator==(const BitSet32 &other) const { return TestSetsEqual(other); }
-    inline void operator|=(const BitSet32 &other) { _Combine(other); }
-    inline void operator&=(const BitSet32 &other) { _Mask(other); }
-    inline BitSet32 &operator=(const BitSet32 &other) { Copy(other); return *this; }
-
-    inline const uint32 *GetPointer() const { return m_pPointer; }
-    inline const uint32 GetDWordCount() const { return m_dwordSize; }
-    inline uint32 *GetPointer() { return m_pPointer; }
-
-    inline bool IsSet(uint32 index) const { return _IsSet(index); }
-    inline void Set(uint32 index) { _Set(index); }
-    inline void Unset(uint32 index) { _Unset(index); }
-
     void Clear()
     {
-        Y_memzero(m_pHeapPtr, m_dwordSize * 4);
+        Y_memzero(m_values, sizeof(TYPE) * m_valueCount);
     }
 
-    void Resize(uint32 length)
+    void Resize(size_t bits)
     {
-        uint32 newDWordSize = length / 32 + 1; 
-        if (newDWordSize != m_dwordSize)
-        {
-            uint32 *pNewPointer = new uint32[newDWordSize];
-            uint32 copyLength = Min(newDWordSize, m_dwordSize);
-            uint32 zeroLength = newDWordSize - copyLength;
-            if (copyLength > 0)
-                Y_memcpy(pNewPointer, m_pPointer, sizeof(uint32) * copyLength);
-            if (zeroLength > 0)
-                Y_memzero(pNewPointer + copyLength, sizeof(uint32) * zeroLength);
+        if (bits == m_bitCount)
+            return;
 
-            delete[] m_pHeapPtr;
-            m_pHeapPtr = pNewPointer;
-            m_pPointer = pNewPointer;
-            m_dwordSize = newDWordSize;
+        if (bits > 0)
+        {
+            size_t oldValues = m_valueCount;
+            size_t newValues = bits / BITS_PER_VALUE + 1;
+            m_bitCount = bits;
+            m_valueCount = newValues;
+            if (oldValues != newValues)
+            {
+                m_values = (TYPE *)Y_reallocarray(m_values, m_valueCount, sizeof(TYPE));
+                if (m_valueCount > oldValues)
+                    Y_memzero(m_values + oldValues, sizeof(TYPE) * (m_valueCount - oldValues));
+            }
+        }
+        else
+        {
+            Y_free(m_values);
+            m_values = nullptr;
+            m_valueCount = m_bitCount = 0;
+        }
+    }
+
+    bool TestBit(size_t bit) const
+    {
+        DebugAssert(bit < m_bitCount);
+        return (m_values[bit / BITS_PER_VALUE] & (1 << (bit % BITS_PER_VALUE))) != 0;
+    }
+
+    void SetBit(size_t bit, bool on = true)
+    {
+        DebugAssert(bit < m_bitCount);
+        if (on)
+            m_values[bit / BITS_PER_VALUE] |= TYPE(1 << (bit % BITS_PER_VALUE));
+        else
+            m_values[bit / BITS_PER_VALUE] &= ~TYPE(1 << (bit % BITS_PER_VALUE));
+    }
+
+    void UnsetBit(size_t bit)
+    {
+        SetBit(bit, false);
+    }
+
+    void FlipBit(size_t bit)
+    {
+        DebugAssert(bit < m_bitCount);
+        m_values[bit / BITS_PER_VALUE] ^= TYPE(1 << (bit % BITS_PER_VALUE));
+    }
+
+    bool TestSetMask(const BitSet &mask) const
+    {
+        if (mask.m_valueCount > m_valueCount)
+        {
+            // test the extra bits
+            for (size_t i = m_valueCount; i < mask.m_valueCount; i++)
+            {
+                if (mask.m_values[i] != 0)
+                    return false;
+            }
         }
 
-        m_bitSize = length;
-    }
-
-    bool TestSetsAnd(const BitSet32 &other) const
-    {
-        DebugAssert(other.m_dwordSize == m_dwordSize);
-        for (size_t i = 0; i < m_dwordSize; i++)
+        // test our bits
+        for (size_t i = 0; i < m_valueCount; i++)
         {
-            if ((m_pPointer[i] & other.m_pPointer[i]) != 0)
-                return true;
+            if ((m_values[i] & mask.m_values[i]) != mask.m_values[i])
+                return false;
         }
-
-        return false;
+        return true;
     }
 
-    bool TestSetsEqual(const BitSet32 &other) const
+    bool TestSetEqual(const BitSet &test) const
     {
-        DebugAssert(other.m_dwordSize == m_dwordSize);
-        for (size_t i = 0; i < m_dwordSize; i++)
+        if (test.m_valueCount != m_valueCount)
+            return false;
+
+        for (size_t i = 0; i < m_valueCount; i++)
         {
-            if (m_pPointer[i] != other.m_pPointer[i])
+            if (m_values[i] != mask.m_values[i])
                 return false;
         }
 
         return true;
     }
 
-    void Copy(const BitSet32 &copy)
+    void Copy(const BitSet &other) const
     {
-        if (m_pHeapPtr != nullptr)
-            delete[] m_pHeapPtr;
+        if (m_valueCount != other.m_bitCount)
+            Resize(other.m_bitCount);
 
-        if (copy.m_pPointer == nullptr)
+        DebugAssert(m_valueCount == other.m_valueCount);
+        if (m_valueCount > 0)
+            Y_memcpy(m_values, other.m_values, sizeof(TYPE) * m_valueCount);
+    }
+
+    void Swap(const BitSet &other) const
+    {
+        Swap(m_bitCount, other.m_bitCount);
+        Swap(m_valueCount, other.m_valueCount);
+        Swap(m_values, other.m_values);
+    }
+
+    void Combine(const BitSet &other)
+    {
+        if (other.m_bitCount > m_bitCount)
+            Resize(other.m_bitCount);
+
+        size_t loopCount = Min(m_valueCount, other.m_valueCount);
+        for (size_t i = 0; i < loopCount; i++)
+            m_values[i] |= other.m_values[i];
+    }
+
+    void Mask(const BitSet &other)
+    {
+        if (other.m_valueCount < m_valueCount)
         {
-            m_bitSize = 0;
-            m_dwordSize = 0;
-            m_pHeapPtr = nullptr;
-            m_pPointer = nullptr;
+            for (size_t i = 0; i < other.m_valueCount; i++)
+                m_values[i] &= other.m_values[i];
+            for (size_t i = other.m_valueCount; i < m_valueCount; i++)
+                m_valueCount[i] = 0;
         }
         else
         {
-            m_pPointer = m_pHeapPtr = new uint32[copy.m_dwordSize];
-            m_bitSize = copy.m_bitSize;
-            m_dwordSize = copy.m_dwordSize;
-            Y_memcpy(m_pPointer, copy.m_pPointer, sizeof(uint32)* copy.m_dwordSize);
+            size_t loopCount = Min(m_valueCount, other.m_valueCount);
+            for (size_t i = 0; i < loopCount; i++)
+                m_values[i] &= other.m_values[i];
         }
     }
 
-    void Swap(BitSet32 &other)
+    void Flip()
     {
-        if (m_pHeapPtr == nullptr || other.m_pHeapPtr == nullptr)
+        for (size_t i = 0; i < m_valueCount; i++)
         {
-            BitSet32 temp(*this);
-            Copy(other);
-            other.Copy(temp);
-        }
-        else
-        {
-            ::Swap(m_pHeapPtr, other.m_pHeapPtr);
-            ::Swap(m_pPointer, other.m_pPointer);
-            ::Swap(m_dwordSize, other.m_dwordSize);
-            ::Swap(m_bitSize, other.m_bitSize);
+            // careful not to flip out of bit range
+            if ((i + 1) * BITS_PER_VALUE > m_bitCount)
+            {
+                size_t count = BITS_PER_VALUE - (((i + 1) * BITS_PER_VALUE) - m_bitCount);
+                for (size_t j = 0; j < count; j++)
+                    m_values[i] ^= (1 << j);
+            }
+            else
+            {
+                m_values[i] = ~m_values[i];
+            }
         }
     }
+
+    bool FindFirstSetBit(size_t *foundIndex) const
+    {
+        for (size_t i = 0; i < m_valueCount; i++)
+        {
+            if (m_values[i] == 0)
+                continue;
+
+            uint32 index;
+            Y_bitscanforward(m_values[i], &index);
+            *foundIndex = i * BITS_PER_VALUE + index;
+            return true;
+        }
+
+        return false;            
+    }
+
+    bool FindFirstClearBit(size_t *foundIndex) const
+    {
+        for (size_t i = 0; i < m_valueCount; i++)
+        {
+            if (m_values[i] == 0)
+                continue;
+
+            uint32 index;
+            Y_bitscanforward(static_cast<uint32>(~m_values[i]), &index);
+            *foundIndex = i * BITS_PER_VALUE + index;
+            return true;
+        }
+
+        return false;
+    }
+
+    bool FindContiguousClearBits(size_t count, size_t *foundStartingIndex) const
+    {
+        for (size_t i = 0; i < m_valueCount; i++)
+        {
+            if (m_values[i] == 0)
+                continue;
+
+            TYPE mask = TYPE(size_t(1 << Min(BITS_PER_VALUE, count)) - 1);
+            TYPE value = m_values[i];
+            size_t pos;
+            for (pos = 0; pos < BITS_PER_VALUE; pos++)
+            {
+                if ((value & mask) == 0)
+                    break;
+
+                mask <<= 1;
+            }
+            if (pos == BITS_PER_VALUE)
+                continue;
+
+            size_t bitsRemaining = count - (BITS_PER_VALUE - pos);
+            size_t adjacentIndex = i + 1;
+            while (bitsRemaining > 0 && adjacentIndex < m_valueCount)
+            {
+                mask = TYPE(size_t(1 << Min(BITS_PER_VALUE, bitsRemaining)) - 1);
+                if ((m_values[adjacentIndex] & mask) == 0)
+                {
+                    bitsRemaining = (BITS_PER_VALUE > bitsRemaining) ? 0 : bitsRemaining - BITS_PER_VALUE;
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+            }
+            if (bitsRemaining == 0)
+            {
+                *foundStartingIndex = i * BITS_PER_VALUE + pos;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // wrapper for operator[]
+    class IndexAccessor
+    {
+    private:
+        BitSet *bitset;
+        size_t index;
+
+    public:
+        IndexAccessor(BitSet *bitset, size_t index) : bitset(bitset), index(index) {}
+        operator bool () const { return bitset->TestBit(index); }
+        IndexAccessor &operator=(bool value) { bitset->SetBit(index, value); return *this; }
+    };
+
+    // operators
+    IndexAccessor operator[](size_t index) { DebugAssert(index < m_bitCount); return IndexAccessor(this, index); }
+    bool operator[](size_t index) const { return TestBit(index); }
+    bool operator==(const BitSet &rhs) const { return TestSetEqual(rhs); }
+    bool operator!=(const BitSet &rhs) const { return !TestSetEqual(rhs); }
+    BitSet &operator=(const BitSet &rhs) { Copy(rhs); return *this; }
+    BitSet &operator=(const BitSet &&rhs) { Swap(rhs); return *this; }
+    BitSet &operator|=(const BitSet &rhs) { Combine(rhs); return *this; }
+    BitSet &operator&=(const BitSet &rhs) { Mask(rhs); return *this; }
+    BitSet operator|(const BitSet &rhs) const { BitSet ret(*this); ret.Combine(rhs); return ret; }
+    BitSet operator&(const BitSet &rhs) const { BitSet ret(*this); ret.Mask(rhs); return ret; }
+    BitSet operator~() const { BitSet ret(*this); ret.Flip(); return ret; }
 
 private:
-    bool _IsSet(uint32 bit) const
-    {
-        uint32 arrayindex = (bit / 32);
-        uint32 mask = 1 << (bit % 32);
-        DebugAssert(bit < m_bitSize);
-        DebugAssert(arrayindex < m_dwordSize);
-        return (m_pPointer[arrayindex] & mask) != 0;
-    }
-
-    void _Set(uint32 bit)
-    {
-        uint32 arrayindex = (bit / 32);
-        uint32 mask = 1 << (bit % 32);
-        DebugAssert(bit < m_bitSize);
-        DebugAssert(arrayindex < m_dwordSize);
-        m_pPointer[arrayindex] |= mask;
-    }
-
-    void _Unset(uint32 bit)
-    {
-        uint32 arrayindex = (bit / 32);
-        uint32 mask = 1 << (bit % 32);
-        DebugAssert(bit < m_bitSize);
-        DebugAssert(arrayindex < m_dwordSize);
-        m_pPointer[arrayindex] &= ~mask;
-    }
-
-    void _Combine(const BitSet32 &other)
-    {
-        DebugAssert(other.m_dwordSize == m_dwordSize);
-        for (size_t i = 0; i < m_dwordSize; i++)
-            m_pPointer[i] |= other.m_pPointer[i];
-    }
-
-    void _Mask(const BitSet32 &other)
-    {
-        DebugAssert(other.m_dwordSize == m_dwordSize);
-        for (size_t i = 0; i < m_dwordSize; i++)
-            m_pPointer[i] &= other.m_pPointer[i];
-    }
-
-    uint32 *m_pHeapPtr;
-    uint32 *m_pPointer;
-    uint32 m_dwordSize;
-    uint32 m_bitSize;
+    TYPE *m_values;
+    size_t m_valueCount;
+    size_t m_bitCount;
 };
 
-
+typedef BitSet<uint8> BitSet8;
+typedef BitSet<uint32> BitSet32;
+typedef BitSet<uint64> BitSet64;

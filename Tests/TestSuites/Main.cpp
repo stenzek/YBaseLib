@@ -4,6 +4,7 @@
 Log_SetChannel(Main);
 
 DECLARE_TEST_SUITE(Base64);
+DECLARE_TEST_SUITE(BitSet);
 DECLARE_TEST_SUITE(CPUID);
 
 struct TestSuiteEntry
@@ -15,6 +16,7 @@ struct TestSuiteEntry
 static const TestSuiteEntry s_testSuites[] =
 {
     { "Base64",         INVOKE_TEST_SUITE(Base64)       },
+    { "BitSet",         INVOKE_TEST_SUITE(BitSet)       },
     { "CPUID",          INVOKE_TEST_SUITE(CPUID)        },
 };
 

@@ -40,6 +40,7 @@
   <ItemGroup>
     <ClCompile Include="TestSuites\Main.cpp" />
     <ClCompile Include="TestSuites\TestBase64.cpp" />
+    <ClCompile Include="TestSuites\TestBitSet.cpp" />
     <ClCompile Include="TestSuites\TestCPUID.cpp" />
   </ItemGroup>
   <ItemGroup>

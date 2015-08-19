@@ -39,6 +39,10 @@ void Y_qsort(void *pBase, size_t nElements, size_t ElementSize, int(*CompareFunc
 void Y_qsort_r(void *pBase, size_t nElements, size_t ElementSize, void *pContext, int(*CompareFunction)(void *, const void *, const void *));
 void *Y_bsearch(const void *pKey, const void *pBase, size_t nElements, size_t ElementSize, int(*CompareFunction)(const void *, const void *));
 
+bool Y_bitscanforward(uint8 mask, uint32 *index);
+bool Y_bitscanforward(uint32 mask, uint32 *index);
+bool Y_bitscanforward(uint64 mask, uint32 *index);
+
 // templated copies
 template<typename T> void Y_memcpyT(T *pDestination, const T *pSource, size_t uCount) { Y_memcpy(pDestination, pSource, uCount * sizeof(T)); }
 template<typename T> void Y_memmoveT(T *pDestination, const T *pSource, size_t uCount) { Y_memmove(pDestination, pSource, uCount * sizeof(T)); }

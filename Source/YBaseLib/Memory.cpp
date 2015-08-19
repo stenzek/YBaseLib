@@ -353,6 +353,136 @@ void *Y_bsearch(const void *pKey, const void *pBase, size_t nElements, size_t El
     return bsearch(pKey, pBase, nElements, ElementSize, CompareFunction);
 }
 
+bool Y_bitscanforward(uint8 mask, uint32 *index)
+{
+    // possibly use this implementation: http://stackoverflow.com/questions/355967/how-to-use-msvc-intrinsics-to-get-the-equivalent-of-this-gcc-code
+    if (mask & 0x0F)
+    {
+        // bottom half
+        if (mask & 0x03)
+        {
+            if (mask & 0x01)
+            {
+                *index = 0;
+                return true;
+            }
+            else // 0x02
+            {
+                *index = 1;
+                return true;
+            }
+        }
+        else
+        {
+            if (mask & 0x04)
+            {
+                *index = 2;
+                return true;
+            }
+            else // 0x08
+            {
+                *index = 3;
+                return true;
+            }
+        }
+    }
+    else if (mask & 0xF0)
+    {
+        // top half
+        if (mask & 0x30)
+        {
+            if (mask & 0x10)
+            {
+                *index = 4;
+                return true;
+            }
+            else // 0x20
+            {
+                *index = 5;
+                return true;
+            }
+        }
+        else
+        {
+            if (mask & 0x40)
+            {
+                *index = 6;
+                return true;
+            }
+            else // 0x80
+            {
+                *index = 7;
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+#ifdef Y_COMPILER_MSVC
+
+bool Y_bitscanforward(uint32 mask, uint32 *index)
+{
+    // unsigned long is 32bit on x86+x64, so this cast is okay
+    return (_BitScanForward((unsigned long *)index, mask) != 0);
+}
+
+bool Y_bitscanforward(uint64 mask, uint32 *index)
+{
+#ifdef Y_CPU_X64
+    return _BitScanForward64((unsigned long *)index, mask);
+#else
+    if (_BitScanForward((unsigned long *)index, (uint32)mask))
+        return true;
+
+    if (_BitScanForward((unsigned long *)index, (uint32)(mask >> 32)))
+    {
+        *index += 32;
+        return true;
+    }
+
+    return false;
+#endif
+}
+
+#elif defined(Y_COMPILER_GCC) || defined(Y_COMPILER_CLANG) || defined(Y_COMPILER_EMSCRIPTEN)
+
+bool Y_bitscanforward(uint32 mask, uint32 *index)
+{
+    if (mask == 0)
+        return false;
+
+    *index = __builtin_clz(mask);
+    return true;
+}
+
+
+bool Y_bitscanforward(uint64 mask, uint32 *index)
+{
+#ifdef Y_CPU_X64
+    if (mask == 0)
+        return false;
+
+    *index = __builtin_clz(mask);
+    return true;
+#else
+    if ((uint32)mask != 0)
+    {
+        *index = __builtin_clz((uint32)mask);
+        return true;
+    }
+    else if ((uint32)(mask >> 32) != 0)
+    {
+        *index = __builtin_clz((uint32)(mask >> 32)) + 32;
+        return true;
+    }
+    return false;
+#endif
+}
+
+#endif
+
 // ---------------------------------------------------------------------------------------------------------------------
 // overload the new operators
 #ifndef Y_PLATFORM_HTML5
