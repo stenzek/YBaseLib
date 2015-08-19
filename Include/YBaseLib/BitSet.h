@@ -351,6 +351,40 @@ public:
         }
     }
 
+    bool FindFirstSetBit(uint32 *index)
+    {
+        for (uint32 i = 0; i < m_dwordSize; i++)
+        {
+            if (m_pPointer[i] == 0)
+                continue;
+
+            // @TODO GCC for this
+            unsigned long setBitIndex;
+            _BitScanForward(&setBitIndex, m_pPointer[i]);
+            *index = (i * 32) + setBitIndex;
+            return true;
+        }
+
+        return false;
+    }
+
+    bool FindFirstClearBit(uint32 *index)
+    {
+        for (uint32 i = 0; i < m_dwordSize; i++)
+        {
+            if (m_pPointer[i] == 0xFFFFFFFF)
+                continue;
+
+            // @TODO GCC for this
+            unsigned long setBitIndex;
+            _BitScanForward(&setBitIndex, ~m_pPointer[i]);
+            *index = (i * 32) + setBitIndex;
+            return true;
+        }
+
+        return false;
+    }
+
 private:
     bool _IsSet(uint32 bit) const
     {
