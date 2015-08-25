@@ -235,7 +235,7 @@
 #endif
 
 // alignment macro
-#define ALIGNED_SIZE(size, alignment) ((size + (decltype(size))((alignment))) & ~((decltype(size))((alignment))))
+#define ALIGNED_SIZE(size, alignment) ((size + (decltype(size))((alignment) - 1)) & ~((decltype(size))((alignment) - 1)))
 
 // stringify macro
 #ifndef STRINGIFY
