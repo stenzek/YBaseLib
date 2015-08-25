@@ -3,7 +3,7 @@
 #include "YBaseLib/CString.h"
 
 // should only be sizeof(ptr), so it can be used as an array
-YCompileCheckSizeOf(StringParser, sizeof(const char *));
+YStaticCheckSizeOf(StringParser, sizeof(const char *));
 
 StringParser::StringParser(const char *szValue) : m_szValue(szValue)
 {

@@ -215,19 +215,27 @@
 #endif
 
 // compile assert macro
-#define YCompileCheckSizeOf(type, expectedsize) extern int __compile_assert_sizeof_##type[(sizeof(type) == expectedsize) ? 1 : -1]
-#define YCompileAssert(condition, assertion_name) extern int __compile_assert_##assertion_name[(condition) ? 1 : -1]
+#define YStaticCheckSizeOf(type, expectedSize) static_assert(sizeof(type) == (expectedSize), "sizeof "#type" == "#expectedSize)
+#define YStaticAssertMsg(condition, assertion_name) static_assert((condition), assertion_name)
+#define YStaticAssert(condition) static_assert((condition), #condition)
 
 // countof macro
 #ifndef countof
-    template <typename T, size_t N> char ( &__countof_ArraySizeHelper( T (&array)[N] ))[N];
-    #define countof(array) (sizeof(__countof_ArraySizeHelper(array)))
+    #ifdef _countof
+        #define countof _countof
+    #else
+        template <typename T, size_t N> char ( &__countof_ArraySizeHelper( T (&array)[N] ))[N];
+        #define countof(array) (sizeof(__countof_ArraySizeHelper(array)))
+    #endif
 #endif
 
 // offsetof macro
 #ifndef offsetof
     #define offsetof(st, m) ((size_t)( (char *)&((st *)(0))->m - (char *)0))
 #endif
+
+// alignment macro
+#define ALIGNED_SIZE(size, alignment) ((size + (decltype(size))((alignment))) & ~((decltype(size))((alignment))))
 
 // stringify macro
 #ifndef STRINGIFY
