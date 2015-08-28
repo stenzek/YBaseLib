@@ -229,7 +229,7 @@ public:
     {
         for (size_t i = 0; i < m_valueCount; i++)
         {
-            if (m_values[i] == 0)
+            if (m_values[i] == ~(TYPE)0)
                 continue;
 
             uint32 index;
@@ -245,7 +245,7 @@ public:
     {
         for (size_t i = 0; i < m_valueCount; i++)
         {
-            if (m_values[i] == 0)
+            if (m_values[i] == ~(TYPE)0)
                 continue;
 
             TYPE mask = TYPE(size_t(1 << Min(BITS_PER_VALUE, count)) - 1);
@@ -261,7 +261,7 @@ public:
             if (pos == BITS_PER_VALUE)
                 continue;
 
-            size_t bitsRemaining = count - (BITS_PER_VALUE - pos);
+            size_t bitsRemaining = ((BITS_PER_VALUE - pos) > count) ? 0 : (count - (BITS_PER_VALUE - pos));
             size_t adjacentIndex = i + 1;
             while (bitsRemaining > 0 && adjacentIndex < m_valueCount)
             {
