@@ -118,6 +118,15 @@ uint32 Y_snprintf(char *pszDestination, uint32 cbDestination, const char *szForm
     return r;
 }
 
+uint32 Y_scprintf(const char *Format, ...)
+{
+    va_list ap;
+    va_start(ap, Format);
+    uint32 r = Y_vscprintf(Format, ap);
+    va_end(ap);
+    return r;
+}
+
 uint32 Y_sscanf(const char *buffer, const char *format, ...)
 {
     va_list ap;
@@ -135,6 +144,12 @@ uint32 Y_vsnprintf(char *pszDestination, uint32 cbDestination, const char *szFor
     return (r < 0) ? Y_strlen(pszDestination) : r;
 }
 
+uint32 Y_vscprintf(const char *szFormat, va_list ArgPointer)
+{
+    int r = _vscprintf(szFormat, ArgPointer);
+    return (r < 0) ? 0 : r;
+}
+    
 uint32 Y_vscanf(const char *buffer, const char *format, va_list argptr)
 {
     int r = vsscanf_s(buffer, format, argptr);
@@ -147,6 +162,12 @@ uint32 Y_vsnprintf(char *pszDestination, uint32 cbDestination, const char *szFor
 {
     int r = vsnprintf(pszDestination, cbDestination, szFormat, ArgPointer);
     return static_cast<uint32>(r);
+}
+
+uint32 Y_vscprintf(const char *szFormat, va_list ArgPointer)
+{
+    int r = vsnprintf(nullptr, 0, szFormat, ArgPointer);
+    return (r < 0) ? 0 : r;
 }
 
 uint32 Y_vscanf(const char *buffer, const char *format, va_list argptr)

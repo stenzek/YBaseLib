@@ -22,6 +22,8 @@ int32 Y_strnicmp(const char *S1, const char *S2, uint32 Count);
 // format functions
 uint32 Y_snprintf(char *Destination, uint32 cbDestination, const char *Format, ...);
 uint32 Y_vsnprintf(char *Destination, uint32 cbDestination, const char *Format, va_list ArgPointer);
+uint32 Y_scprintf(const char *Format, ...);
+uint32 Y_vscprintf(const char *Format, va_list ArgPointer);
 uint32 Y_sscanf(const char *buffer, const char *format, ...);
 uint32 Y_vscanf(const char *buffer, const char *format, va_list argptr);
 
