@@ -2,6 +2,7 @@
 #include "YBaseLib/String.h"
 #include "YBaseLib/CString.h"
 #include "YBaseLib/Assert.h"
+#include "YBaseLib/Timer.h"
 
 #if defined(Y_PLATFORM_WINDOWS)
     #include "YBaseLib/Windows/WindowsHeaders.h"
@@ -10,10 +11,11 @@
 #endif
 
 Log *g_pLog = &Log::GetInstance();
+static Y_TIMER_VALUE s_startTimeStamp;
 
 Log::Log()
 {
-
+    s_startTimeStamp = Y_TimerGetValue();
 }
 
 Log::~Log()
@@ -22,86 +24,129 @@ Log::~Log()
     g_pLog = NULL;
 }
 
-void Log::RegisterCallback(CallbackFunctionType CallbackFunction, void *UserParam)
+void Log::RegisterCallback(CallbackFunctionType callbackFunction, void *pUserParam)
 {
     RegisteredCallback Callback;
-    Callback.Function = CallbackFunction;
-    Callback.Parameter = UserParam;
+    Callback.Function = callbackFunction;
+    Callback.Parameter = pUserParam;
 
-    m_CallbackLock.Lock();
-    m_liCallbacks.Add(Callback);
-    m_CallbackLock.Unlock();
+    m_callbackLock.Lock();
+    m_callbacks.Add(Callback);
+    m_callbackLock.Unlock();
 }
 
-void Log::UnregisterCallback(CallbackFunctionType CallbackFunction, void *UserParam)
+void Log::UnregisterCallback(CallbackFunctionType callbackFunction, void *pUserParam)
 {
-    m_CallbackLock.Lock();
+    m_callbackLock.Lock();
 
-    for (uint32 i = 0; i < m_liCallbacks.GetSize(); i++)
+    for (uint32 i = 0; i < m_callbacks.GetSize(); i++)
     {
-        if (m_liCallbacks[i].Function == CallbackFunction && m_liCallbacks[i].Parameter == UserParam)
+        if (m_callbacks[i].Function == callbackFunction && m_callbacks[i].Parameter == pUserParam)
         {
-            m_liCallbacks.OrderedRemove(i);
+            m_callbacks.OrderedRemove(i);
             break;
         }
     }
 
-    m_CallbackLock.Unlock();
+    m_callbackLock.Unlock();
 }
 
-static bool s_bConsoleOutputEnabled = false;
-static String s_strConsoleOutputChannelFilter;
-static LOGLEVEL s_eConsoleOutputLevelFilter = LOGLEVEL_TRACE;
+void Log::FormatLogMessageForDisplay(const char *channelName, const char *functionName, LOGLEVEL level, const char *message, void(*printCallback)(const char *, void *), void *pCallbackUserData)
+{
+    static const char levelCharacters[LOGLEVEL_COUNT] = { 'X', 'E', 'W', 'P', 'S', 'I', 'D', 'R', 'T' };
+
+    // find time since start of process
+    float messageTime = (float)Y_TimerConvertToSeconds(Y_TimerGetValue() - s_startTimeStamp);
+
+    // write prefix
+#ifndef Y_BUILD_CONFIG_SHIPPING
+    char prefix[256];
+    if (level <= LOGLEVEL_PERF)
+        Y_snprintf(prefix, countof(prefix), "[%10.4f] %c(%s): ", messageTime, levelCharacters[level], functionName);
+    else
+        Y_snprintf(prefix, countof(prefix), "[%10.4f] %c/%s: ", messageTime, levelCharacters[level], channelName);
+
+    printCallback(prefix, pCallbackUserData);
+#else
+    char prefix[256];
+    Y_snprintf(prefix, countof(prefix), "[%10.4f] %c/%s: ", messageTime, levelCharacters[level], channelName);
+    printCallback(prefix, pCallbackUserData);
+#endif
+
+    // write message
+    printCallback(message, pCallbackUserData);
+}
+
+static bool s_consoleOutputEnabled = false;
+static String s_consoleOutputChannelFilter;
+static LOGLEVEL s_consoleOutputLevelFilter = LOGLEVEL_TRACE;
+
+static bool s_debugOutputEnabled = false;
+static String s_debugOutputChannelFilter;
+static LOGLEVEL s_debugOutputLevelFilter = LOGLEVEL_TRACE;
 
 #if defined(Y_PLATFORM_WINDOWS)
 
-static void ConsoleOutputLogCallback(void *UserParam, const char *ChannelName, LOGLEVEL Level, const char *Message)
+static void ConsoleOutputLogCallback(void *pUserParam, const char *channelName, const char *functionName, LOGLEVEL level, const char *message)
 {
-    if (!s_bConsoleOutputEnabled || Level > s_eConsoleOutputLevelFilter || s_strConsoleOutputChannelFilter.Find(ChannelName) >= 0)
+    if (!s_consoleOutputEnabled || level > s_consoleOutputLevelFilter || s_consoleOutputChannelFilter.Find(channelName) >= 0)
         return;
 
-    HANDLE hConsole = GetStdHandle((Level <= LOGLEVEL_WARNING) ? STD_ERROR_HANDLE : STD_OUTPUT_HANDLE);
+    if (level > LOGLEVEL_COUNT)
+        level = LOGLEVEL_TRACE;
+
+    HANDLE hConsole = GetStdHandle((level <= LOGLEVEL_WARNING) ? STD_ERROR_HANDLE : STD_OUTPUT_HANDLE);
     if (hConsole != INVALID_HANDLE_VALUE)
     {
-        static const WORD uLogLevelColors[LOGLEVEL_COUNT] =
+        static const WORD levelColors[LOGLEVEL_COUNT] =
         {
             FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_GREEN,                        // NONE
             FOREGROUND_RED | FOREGROUND_INTENSITY,                                      // ERROR
             FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY,                   // WARNING
+            FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_INTENSITY,                    // PERF
             FOREGROUND_GREEN | FOREGROUND_INTENSITY,                                    // SUCCESS
             FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_INTENSITY, // INFO
-            FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_INTENSITY,                    // PERF
             FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_GREEN,                        // DEV
             FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_INTENSITY,                  // PROFILE
             FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_GREEN,                        // TRACE
         };
 
-        CONSOLE_SCREEN_BUFFER_INFO ConsoleScreenBufferInfo;
-        GetConsoleScreenBufferInfo(hConsole, &ConsoleScreenBufferInfo);
-        SetConsoleTextAttribute(hConsole, uLogLevelColors[(Level > 7) ? 7 : Level]);
+        CONSOLE_SCREEN_BUFFER_INFO oldConsoleScreenBufferInfo;
+        GetConsoleScreenBufferInfo(hConsole, &oldConsoleScreenBufferInfo);
+        SetConsoleTextAttribute(hConsole, levelColors[level]);
 
-        uint32 len;
+        // write message in the formatted way
+        Log::FormatLogMessageForDisplay(channelName, functionName, level, message, [](const char *text, void *hConsole) {
+            DWORD written;
+            WriteConsoleA((HANDLE)hConsole, text, Y_strlen(text), &written, nullptr);
+        }, (void *)hConsole);
+
+        // write newline
         DWORD written;
+        WriteConsoleA(hConsole, "\r\n", 2, &written, nullptr);
 
-        //char Tmp[32];
-        //len = Y_snprintf(Tmp, YCountOf(Tmp), "[%s]: ", ChannelName);
-        //WriteConsoleA(hConsole, Tmp, len, &written, NULL);
-
-        len = Y_strlen(Message);
-        WriteConsoleA(hConsole, Message, len, &written, NULL);
-
-        static const char *NewlineStr = "\r\n";
-        WriteConsoleA(hConsole, NewlineStr, 2, &written, NULL);
-
-        SetConsoleTextAttribute(hConsole, ConsoleScreenBufferInfo.wAttributes);
+        // restore color
+        SetConsoleTextAttribute(hConsole, oldConsoleScreenBufferInfo.wAttributes);
     }
+}
+
+static void DebugOutputLogCallback(void *pUserParam, const char *channelName, const char *functionName, LOGLEVEL level, const char *message)
+{
+    if (!s_debugOutputEnabled || level > s_debugOutputLevelFilter || s_debugOutputChannelFilter.Find(channelName) >= 0)
+        return;
+
+    Log::FormatLogMessageForDisplay(channelName, functionName, level, message, [](const char *text, void *) {
+        OutputDebugStringA(text);
+    });
+
+    OutputDebugStringA("\n");
 }
 
 #elif defined(Y_PLATFORM_POSIX)
 
-static void ConsoleOutputLogCallback(void *UserParam, const char *ChannelName, LOGLEVEL Level, const char *Message)
+static void ConsoleOutputLogCallback(void *pUserParam, const char *channelName, const char *functionName, LOGLEVEL level, const char *message)
 {
-    if (!s_bConsoleOutputEnabled || Level > s_eConsoleOutputLevelFilter || s_strConsoleOutputChannelFilter.Find(ChannelName) >= 0)
+    if (!s_consoleOutputEnabled || level > s_consoleOutputLevelFilter || s_consoleOutputChannelFilter.Find(channelName) >= 0)
         return;
 
     static const char *colorCodes[LOGLEVEL_COUNT] = 
@@ -109,56 +154,85 @@ static void ConsoleOutputLogCallback(void *UserParam, const char *ChannelName, L
         "\033[0m",         // NONE
         "\033[1;31m",   // ERROR
         "\033[1;33m",   // WARNING
+        "\033[1;35m",   // PERF
         "\033[1;37m",   // SUCCESS 
         "\033[1;37m",   // INFO
-        "\033[1;35m",   // PERF
         "\033[0;37m",   // DEV
         "\033[1;36m",   // PROFILE
         "\033[1;36m",   // TRACE
     };
 
-    int outputFd = (Level <= LOGLEVEL_WARNING) ? STDERR_FILENO : STDOUT_FILENO;
+    int outputFd = (level <= LOGLEVEL_WARNING) ? STDERR_FILENO : STDOUT_FILENO;
 
-    size_t len = Y_strlen(Message);
-    if (len > 0)
-    {
-        const char *colorCode = colorCodes[Level];
-        write(outputFd, colorCode, Y_strlen(colorCode));
-        write(outputFd, Message, len);
-        write(outputFd, colorCodes[0], Y_strlen(colorCodes[0]));
-    }
+    write(outputFd, colorCodes[level], Y_strlen(colorCodes[level]));
 
+    Log::FormatLogMessageForDisplay(channelName, functionName, level, message, [](const char *text, void *outputFd) {
+        write((int)outputFd, text, Y_strlen(text));
+    }, (void *)outputFd);
+
+    write(outputFd, colorCodes[0], Y_strlen(colorCodes[0]));
     write(outputFd, "\n", 1);
+}
+
+static void DebugOutputLogCallback(void *pUserParam, const char *channelName, const char *functionName, LOGLEVEL level, const char *message)
+{
+
 }
 
 #elif defined(Y_PLATFORM_ANDROID)
 
-static void ConsoleOutputLogCallback(void *UserParam, const char *ChannelName, LOGLEVEL Level, const char *Message)
+static void ConsoleOutputLogCallback(void *pUserParam, const char *channelName, const char *functionName, LOGLEVEL level, const char *message)
 {
 
 }
 
-#elif defined(Y_PLATFORM_HTML5)
-
-static void ConsoleOutputLogCallback(void *UserParam, const char *ChannelName, LOGLEVEL Level, const char *Message)
+static void DebugOutputLogCallback(void *pUserParam, const char *channelName, const char *functionName, LOGLEVEL level, const char *message)
 {
-    if (!s_bConsoleOutputEnabled || Level > s_eConsoleOutputLevelFilter || s_strConsoleOutputChannelFilter.Find(ChannelName) >= 0)
+    if (!s_debugOutputEnabled || level > s_debugOutputLevelFilter || s_debugOutputChannelFilter.Find(functionName) >= 0)
         return;
 
-    size_t len = Y_strlen(Message);
-    if (len > 0)
-        write(STDOUT_FILENO, Message, len);
+    static const int logPriority[LOGLEVEL_COUNT] =
+    {
+        ANDROID_LOG_INFO,           // NONE
+        ANDROID_LOG_ERROR,          // ERROR
+        ANDROID_LOG_WARN,           // WARNING
+        ANDROID_LOG_INFO,           // PERF
+        ANDROID_LOG_INFO,           // SUCCESS
+        ANDROID_LOG_INFO,           // INFO
+        ANDROID_LOG_DEBUG,          // DEV
+        ANDROID_LOG_DEBUG,          // PROFILE
+        ANDROID_LOG_DEBUG,          // TRACE
+    };
+
+    __android_log_write(logPriority[level], channelName, message);
+}
+
+#elif defined(Y_PLATFORM_HTML5)
+
+static void ConsoleOutputLogCallback(void *pUserParam, const char *channelName, const char *functionName, LOGLEVEL level, const char *message)
+{
+    if (!s_consoleOutputEnabled || level > s_consoleOutputLevelFilter || s_consoleOutputChannelFilter.Find(channelName) >= 0)
+        return;
+
+    Log::FormatLogMessageForDisplay(channelName, functionName, level, message, [](const char *text, void *) {
+        write(STDOUT_FILENO, text, Y_strlen(text));
+    });
 
     write(STDOUT_FILENO, "\n", 1);
+}
+
+static void DebugOutputLogCallback(void *pUserParam, const char *channelName, const char *functionName, LOGLEVEL level, const char *message)
+{
+
 }
 
 #endif
 
 void Log::SetConsoleOutputParams(bool Enabled, const char *ChannelFilter, LOGLEVEL LevelFilter)
 {
-    if (s_bConsoleOutputEnabled != Enabled)
+    if (s_consoleOutputEnabled != Enabled)
     {
-        s_bConsoleOutputEnabled = Enabled;
+        s_consoleOutputEnabled = Enabled;
         if (Enabled)
             RegisterCallback(ConsoleOutputLogCallback, NULL);
         else
@@ -191,107 +265,62 @@ void Log::SetConsoleOutputParams(bool Enabled, const char *ChannelFilter, LOGLEV
 #endif
     }
 
-    s_strConsoleOutputChannelFilter = (ChannelFilter != NULL) ? ChannelFilter : "";
-    s_eConsoleOutputLevelFilter = LevelFilter;
+    s_consoleOutputChannelFilter = (ChannelFilter != NULL) ? ChannelFilter : "";
+    s_consoleOutputLevelFilter = LevelFilter;
 }
 
-static bool s_bDebugOutputEnabled = false;
-static String s_strDebugOutputChannelFilter;
-static LOGLEVEL s_eDebugOutputLevelFilter = LOGLEVEL_TRACE;
-
-#if defined(Y_PLATFORM_WINDOWS)
-
-static void DebugOutputLogCallback(void *UserParam, const char *ChannelName, LOGLEVEL Level, const char *Message)
+void Log::SetDebugOutputParams(bool enabled, const char *channelFilter /* = nullptr */, LOGLEVEL levelFilter /* = LOGLEVEL_TRACE */)
 {
-    if (!s_bDebugOutputEnabled || Level > s_eDebugOutputLevelFilter || s_strDebugOutputChannelFilter.Find(ChannelName) >= 0)
-        return;
-
-    OutputDebugStringA(Message);
-    OutputDebugStringA("\n");
-}
-
-#elif defined(Y_PLATFORM_POSIX)
-
-static void DebugOutputLogCallback(void *UserParam, const char *ChannelName, LOGLEVEL Level, const char *Message)
-{
-}
-
-#elif defined(Y_PLATFORM_ANDROID)
-
-static void DebugOutputLogCallback(void *UserParam, const char *ChannelName, LOGLEVEL Level, const char *Message)
-{
-    if (!s_bDebugOutputEnabled || Level > s_eDebugOutputLevelFilter || s_strDebugOutputChannelFilter.Find(ChannelName) >= 0)
-        return;
-
-    static const int logPriority[LOGLEVEL_COUNT] =
+    if (s_debugOutputEnabled != enabled)
     {
-        ANDROID_LOG_INFO,           // NONE
-        ANDROID_LOG_ERROR,          // ERROR
-        ANDROID_LOG_WARN,           // WARNING
-        ANDROID_LOG_INFO,           // SUCCESS
-        ANDROID_LOG_INFO,           // INFO
-        ANDROID_LOG_INFO,           // PERF
-        ANDROID_LOG_DEBUG,          // DEV
-        ANDROID_LOG_DEBUG,          // PROFILE
-        ANDROID_LOG_DEBUG,          // TRACE
-    };
-
-    __android_log_write(logPriority[Level], ChannelName, Message);
-}
-
-#elif defined(Y_PLATFORM_HTML5)
-
-static void DebugOutputLogCallback(void *UserParam, const char *ChannelName, LOGLEVEL Level, const char *Message)
-{
-}
-
-#endif
-
-void Log::SetDebugOutputParams(bool Enabled, const char *ChannelFilter, LOGLEVEL LevelFilter)
-{
-    if (s_bDebugOutputEnabled != Enabled)
-    {
-        s_bDebugOutputEnabled = Enabled;
-        if (Enabled)
-            RegisterCallback(DebugOutputLogCallback, NULL);
+        s_debugOutputEnabled = enabled;
+        if (enabled)
+            RegisterCallback(DebugOutputLogCallback, nullptr);
         else
-            UnregisterCallback(DebugOutputLogCallback, NULL);
+            UnregisterCallback(DebugOutputLogCallback, nullptr);
     }
 
-    s_strDebugOutputChannelFilter = (ChannelFilter != NULL) ? ChannelFilter : "";
-    s_eDebugOutputLevelFilter = LevelFilter;
+    s_debugOutputChannelFilter = (channelFilter != nullptr) ? channelFilter : "";
+    s_debugOutputLevelFilter = levelFilter;
 }
 
-void Log::ExecuteCallbacks(const char *ChannelName, LOGLEVEL Level, const char *Message)
+void Log::ExecuteCallbacks(const char *channelName, const char *functionName, LOGLEVEL level, const char *message)
 {
-    m_CallbackLock.Lock();
+    m_callbackLock.Lock();
 
-    for (RegisteredCallback &callback : m_liCallbacks)
-        callback.Function(callback.Parameter, ChannelName, Level, Message);
+    for (RegisteredCallback &callback : m_callbacks)
+        callback.Function(callback.Parameter, channelName, functionName, level, message);
 
-    m_CallbackLock.Unlock();
+    m_callbackLock.Unlock();
 }
 
-void Log::Write(const char *ChannelName, LOGLEVEL Level, const char *Message)
+void Log::Write(const char *channelName, const char *functionName, LOGLEVEL level, const char *message)
 {
-    ExecuteCallbacks(ChannelName, Level, Message);
+    ExecuteCallbacks(channelName, functionName, level, message);
 }
 
-void Log::Writef(const char *ChannelName, LOGLEVEL Level, const char *Format, ...)
+void Log::Writef(const char *channelName, const char *functionName, LOGLEVEL level, const char *format, ...)
 {
-    char logFormatBuffer[512];
-
     va_list ap;
-    va_start(ap, Format);
-    Y_vsnprintf(logFormatBuffer, countof(logFormatBuffer), Format, ap);
+    va_start(ap, format);
+    Writev(channelName, functionName, level, format, ap);
     va_end(ap);
-
-    ExecuteCallbacks(ChannelName, Level, logFormatBuffer);
 }
 
-void Log::Writev(const char *ChannelName, LOGLEVEL Level, const char *Format, va_list ArgPtr)
+void Log::Writev(const char *channelName, const char *functionName, LOGLEVEL level, const char *format, va_list ap)
 {
-    char logFormatBuffer[512];
-    Y_vsnprintf(logFormatBuffer, countof(logFormatBuffer), Format, ArgPtr);
-    ExecuteCallbacks(ChannelName, Level, logFormatBuffer);
+    uint32 requiredSize = Y_vscprintf(format, ap);
+    if (requiredSize < 512)
+    {
+        char buffer[512];
+        Y_vsnprintf(buffer, countof(buffer), format, ap);
+        ExecuteCallbacks(channelName, functionName, level, buffer);
+    }
+    else
+    {
+        char *buffer = (char *)Y_malloc(requiredSize + 1);
+        Y_vsnprintf(buffer, requiredSize + 1, format, ap);
+        ExecuteCallbacks(channelName, functionName, level, buffer);
+        Y_free(buffer);
+    }
 }

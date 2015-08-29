@@ -10,9 +10,9 @@ enum LOGLEVEL
     LOGLEVEL_NONE               = 0,        // Silences all log traffic
     LOGLEVEL_ERROR              = 1,        // "ErrorPrint"
     LOGLEVEL_WARNING            = 2,        // "WarningPrint"
-    LOGLEVEL_SUCCESS            = 3,        // "SuccessPrint"
-    LOGLEVEL_INFO               = 4,        // "LogPrint"
-    LOGLEVEL_PERF               = 5,        // "PerfPrint"
+    LOGLEVEL_PERF               = 3,        // "PerfPrint"
+    LOGLEVEL_SUCCESS            = 4,        // "SuccessPrint"
+    LOGLEVEL_INFO               = 5,        // "InfoPrint"
     LOGLEVEL_DEV                = 6,        // "DevPrint"
     LOGLEVEL_PROFILE            = 7,        // "ProfilePrint"
     LOGLEVEL_TRACE              = 8,        // "TracePrint"
@@ -26,24 +26,27 @@ public:
     ~Log();
 
     // log message callback type
-    typedef void(*CallbackFunctionType)(void *UserParam, const char *ChannelName, LOGLEVEL Level, const char *Message);
+    typedef void(*CallbackFunctionType)(void *pUserParam, const char *channelName, const char *functionName, LOGLEVEL level, const char *message);
 
     // registers a log callback
-    void RegisterCallback(CallbackFunctionType CallbackFunction, void *UserParam);
+    void RegisterCallback(CallbackFunctionType callbackFunction, void *pUserParam);
 
     // unregisters a log callback
-    void UnregisterCallback(CallbackFunctionType CallbackFunction, void *UserParam);
+    void UnregisterCallback(CallbackFunctionType callbackFunction, void *pUserParam);
 
     // adds a standard console output
-    void SetConsoleOutputParams(bool Enabled, const char *ChannelFilter = NULL, LOGLEVEL LevelFilter = LOGLEVEL_TRACE);
+    void SetConsoleOutputParams(bool enabled, const char *channelFilter = nullptr, LOGLEVEL levelFilter = LOGLEVEL_TRACE);
 
-    // adds a debug console output [win32 only]
-    void SetDebugOutputParams(bool Enabled, const char *ChannelFilter = NULL, LOGLEVEL LevelFilter = LOGLEVEL_TRACE);
+    // adds a debug console output [win32/android only]
+    void SetDebugOutputParams(bool enabled, const char *channelFilter = nullptr, LOGLEVEL levelFilter = LOGLEVEL_TRACE);
 
     // writes a message to the log
-    void Write(const char *ChannelName, LOGLEVEL Level, const char *Message);
-    void Writef(const char *ChannelName, LOGLEVEL Level, const char *Format, ...);
-    void Writev(const char *ChannelName, LOGLEVEL Level, const char *Format, va_list ArgPtr);
+    void Write(const char *channelName, const char *functionName, LOGLEVEL level, const char *message);
+    void Writef(const char *channelName, const char *functionName, LOGLEVEL level, const char *format, ...);
+    void Writev(const char *channelName, const char *functionName, LOGLEVEL level, const char *format, va_list ap);
+
+    // formats a log message for display, involves multiple print calls
+    static void FormatLogMessageForDisplay(const char *channelName, const char *functionName, LOGLEVEL level, const char *message, void(*printCallback)(const char *, void *), void *pCallbackUserData = nullptr);
 
 private:
     struct RegisteredCallback
@@ -53,29 +56,35 @@ private:
     };
 
     typedef MemArray<RegisteredCallback> RegisteredCallbackList;
-    RegisteredCallbackList m_liCallbacks;
-    Mutex m_CallbackLock;
+    RegisteredCallbackList m_callbacks;
+    Mutex m_callbackLock;
 
-    void ExecuteCallbacks(const char *ChannelName, LOGLEVEL Level, const char *Message);
+    void ExecuteCallbacks(const char *channelName, const char *functionName, LOGLEVEL level, const char *message);
 };
 
 extern Log *g_pLog;
 
+#ifdef Y_BUILD_CONFIG_SHIPPING
+    #define LOG_MESSAGE_FUNCTION_NAME ""
+#else
+    #define LOG_MESSAGE_FUNCTION_NAME __FUNCTION__
+#endif
+
 // log wrappers
 #define Log_SetChannel(ChannelName) static const char *___LogChannel___ = #ChannelName;
-#define Log_ErrorPrint(msg) Log::GetInstance().Write(___LogChannel___, LOGLEVEL_ERROR, msg)
-#define Log_WarningPrint(msg) Log::GetInstance().Write(___LogChannel___, LOGLEVEL_WARNING, msg)
-#define Log_SuccessPrint(msg) Log::GetInstance().Write(___LogChannel___, LOGLEVEL_SUCCESS, msg)
-#define Log_InfoPrint(msg) Log::GetInstance().Write(___LogChannel___, LOGLEVEL_INFO, msg)
-#define Log_PerfPrint(msg) Log::GetInstance().Write(___LogChannel___, LOGLEVEL_PERF, msg)
-#define Log_DevPrint(msg) Log::GetInstance().Write(___LogChannel___, LOGLEVEL_DEV, msg)
-#define Log_ProfilePrint(msg) Log::GetInstance().Write(___LogChannel___, LOGLEVEL_PROFILE, msg)
-#define Log_TracePrint(msg) Log::GetInstance().Write(___LogChannel___, LOGLEVEL_TRACE, msg)
-#define Log_ErrorPrintf(...) Log::GetInstance().Writef(___LogChannel___, LOGLEVEL_ERROR, __VA_ARGS__)
-#define Log_WarningPrintf(...) Log::GetInstance().Writef(___LogChannel___, LOGLEVEL_WARNING, __VA_ARGS__)
-#define Log_SuccessPrintf(...) Log::GetInstance().Writef(___LogChannel___, LOGLEVEL_SUCCESS, __VA_ARGS__)
-#define Log_InfoPrintf(...) Log::GetInstance().Writef(___LogChannel___, LOGLEVEL_INFO, __VA_ARGS__)
-#define Log_PerfPrintf(...) Log::GetInstance().Writef(___LogChannel___, LOGLEVEL_PERF, __VA_ARGS__)
-#define Log_DevPrintf(...) Log::GetInstance().Writef(___LogChannel___, LOGLEVEL_DEV, __VA_ARGS__)
-#define Log_ProfilePrintf(...) Log::GetInstance().Writef(___LogChannel___, LOGLEVEL_PROFILE, __VA_ARGS__)
-#define Log_TracePrintf(...) Log::GetInstance().Writef(___LogChannel___, LOGLEVEL_TRACE, __VA_ARGS__)
+#define Log_ErrorPrint(msg) Log::GetInstance().Write(___LogChannel___, LOG_MESSAGE_FUNCTION_NAME, LOGLEVEL_ERROR, msg)
+#define Log_WarningPrint(msg) Log::GetInstance().Write(___LogChannel___, LOG_MESSAGE_FUNCTION_NAME, LOGLEVEL_WARNING, msg)
+#define Log_SuccessPrint(msg) Log::GetInstance().Write(___LogChannel___, LOG_MESSAGE_FUNCTION_NAME, LOGLEVEL_SUCCESS, msg)
+#define Log_InfoPrint(msg) Log::GetInstance().Write(___LogChannel___, LOG_MESSAGE_FUNCTION_NAME, LOGLEVEL_INFO, msg)
+#define Log_PerfPrint(msg) Log::GetInstance().Write(___LogChannel___, LOG_MESSAGE_FUNCTION_NAME, LOGLEVEL_PERF, msg)
+#define Log_DevPrint(msg) Log::GetInstance().Write(___LogChannel___, LOG_MESSAGE_FUNCTION_NAME, LOGLEVEL_DEV, msg)
+#define Log_ProfilePrint(msg) Log::GetInstance().Write(___LogChannel___, LOG_MESSAGE_FUNCTION_NAME, LOGLEVEL_PROFILE, msg)
+#define Log_TracePrint(msg) Log::GetInstance().Write(___LogChannel___, LOG_MESSAGE_FUNCTION_NAME, LOGLEVEL_TRACE, msg)
+#define Log_ErrorPrintf(...) Log::GetInstance().Writef(___LogChannel___, LOG_MESSAGE_FUNCTION_NAME, LOGLEVEL_ERROR, __VA_ARGS__)
+#define Log_WarningPrintf(...) Log::GetInstance().Writef(___LogChannel___, LOG_MESSAGE_FUNCTION_NAME, LOGLEVEL_WARNING, __VA_ARGS__)
+#define Log_SuccessPrintf(...) Log::GetInstance().Writef(___LogChannel___, LOG_MESSAGE_FUNCTION_NAME, LOGLEVEL_SUCCESS, __VA_ARGS__)
+#define Log_InfoPrintf(...) Log::GetInstance().Writef(___LogChannel___, LOG_MESSAGE_FUNCTION_NAME, LOGLEVEL_INFO, __VA_ARGS__)
+#define Log_PerfPrintf(...) Log::GetInstance().Writef(___LogChannel___, LOG_MESSAGE_FUNCTION_NAME, LOGLEVEL_PERF, __VA_ARGS__)
+#define Log_DevPrintf(...) Log::GetInstance().Writef(___LogChannel___, LOG_MESSAGE_FUNCTION_NAME, LOGLEVEL_DEV, __VA_ARGS__)
+#define Log_ProfilePrintf(...) Log::GetInstance().Writef(___LogChannel___, LOG_MESSAGE_FUNCTION_NAME, LOGLEVEL_PROFILE, __VA_ARGS__)
+#define Log_TracePrintf(...) Log::GetInstance().Writef(___LogChannel___, LOG_MESSAGE_FUNCTION_NAME, LOGLEVEL_TRACE, __VA_ARGS__)
