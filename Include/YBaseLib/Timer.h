@@ -18,8 +18,7 @@ double Y_TimerConvertToNanoseconds(Y_TIMER_VALUE Value);
 class Timer
 {
 public:
-    // temp hackfix for conflicts with wxstc
-    Timer(int x = 1);
+    Timer();
 
     void Reset();
 

@@ -87,7 +87,7 @@ double Y_TimerConvertToSeconds(Y_TIMER_VALUE Value)
 
 #endif
 
-Timer::Timer(int x /* = 1 */)
+Timer::Timer()
 {
     Reset();
 }
