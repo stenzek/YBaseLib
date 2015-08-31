@@ -25,10 +25,19 @@ private:
 };
 
 #define SAFE_RELEASE(x) MULTI_STATEMENT_MACRO_BEGIN \
-                            if ((x) != NULL) { (x)->Release(); (x) = nullptr; } \
+                            if ((x) != nullptr) { (x)->Release(); (x) = nullptr; } \
                         MULTI_STATEMENT_MACRO_END
 
 #define FAST_RELEASE(x) MULTI_STATEMENT_MACRO_BEGIN \
                             { (x)->Release(); } \
                         MULTI_STATEMENT_MACRO_END
 
+#define SAFE_RELEASE_LAST(x) MULTI_STATEMENT_MACRO_BEGIN \
+                                if ((x) != nullptr) { \
+                                    uint32 refCount = (x)->Release(); \
+                                    (x) = nullptr; \
+                                    if (refCount != 0) { \
+                                        Panic("Expecting to release last reference to object "#x", object is still alive."); \
+                                    } \
+                                } \
+                             MULTI_STATEMENT_MACRO_END
