@@ -13,7 +13,7 @@ CircularBuffer::CircularBuffer()
 }
 
 CircularBuffer::CircularBuffer(size_t bufferSize)
-    : m_pBuffer(nullptr)
+    : m_pBuffer((byte *)Y_malloc(bufferSize))
     , m_pRegionAHead(m_pBuffer)
     , m_pRegionATail(m_pBuffer)
     , m_pRegionBTail(nullptr)
@@ -22,7 +22,6 @@ CircularBuffer::CircularBuffer(size_t bufferSize)
 {
     // @TODO safe malloc
     DebugAssert(bufferSize > 0);
-    m_pBuffer = (byte *)Y_malloc(bufferSize);
 }
 
 CircularBuffer::CircularBuffer(byte *pBuffer, size_t bufferSize)
@@ -67,6 +66,19 @@ size_t CircularBuffer::GetBufferSpace() const
         return m_bufferSize - (m_pRegionATail - m_pRegionAHead);
 }
 
+size_t CircularBuffer::GetContiguousBufferSpace() const
+{
+    // prefer using buffer B
+    if (m_pRegionBTail != nullptr)
+        return m_pRegionAHead - m_pRegionBTail;
+    else
+    {
+        size_t spaceA = (m_pBuffer + m_bufferSize) - m_pRegionATail;
+        size_t spaceB = m_pRegionAHead - m_pBuffer;
+        return Max(spaceA, spaceB);
+    }
+}
+
 size_t CircularBuffer::GetBufferUsed() const
 {
     // only include B's figures if it exists
@@ -74,6 +86,11 @@ size_t CircularBuffer::GetBufferUsed() const
         return (m_pRegionBTail - m_pBuffer) + (m_pRegionATail - m_pRegionAHead);
     else
         return (m_pRegionATail - m_pRegionAHead);
+}
+
+size_t CircularBuffer::GetContiguousUsedBytes() const
+{
+    return m_pRegionATail - m_pRegionAHead;
 }
 
 bool CircularBuffer::GetReadPointer(const void **ppReadPointer, size_t *pByteCount) const

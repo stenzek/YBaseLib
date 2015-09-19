@@ -20,8 +20,14 @@ public:
     // Current space in the buffer (including wrap-around).
     size_t GetBufferSpace() const;
 
-    // Current data size in the buffer.
+    // Current space in the buffer (excluding wrap-around).
+    size_t GetContiguousBufferSpace() const;
+
+    // Current data size in the buffer (including wrap-around)
     size_t GetBufferUsed() const;
+
+    // Current data size in the buffer (excluding wrap-around)
+    size_t GetContiguousUsedBytes() const;
 
     // Resize the buffer. Currently can only increase size and not decrease.
     void ResizeBuffer(size_t newBufferSize);
