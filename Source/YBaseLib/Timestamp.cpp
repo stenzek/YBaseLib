@@ -89,7 +89,8 @@ Timestamp::ExpandedTime Timestamp::AsExpandedTime() const
 #if defined(Y_PLATFORM_WINDOWS)
     et.Year = m_value.wYear;
     et.Month = m_value.wMonth;
-    et.Day = m_value.wDay;
+    et.DayOfMonth = m_value.wDay;
+    et.DayOfWeek = m_value.wDayOfWeek;
     et.Hour = m_value.wHour;
     et.Minute = m_value.wMinute;
     et.Second = m_value.wSecond;
@@ -100,7 +101,8 @@ Timestamp::ExpandedTime Timestamp::AsExpandedTime() const
     gmtime_r(&unixTime, &t);
     et.Year = t.tm_year + 1900;
     et.Month = t.tm_mon + 1;
-    et.Day = t.tm_mday;
+    et.DayOfMonth = t.tm_mday;
+    et.DayOfWeek = t.tm_wday;
     et.Hour = t.tm_hour;
     et.Minute = t.tm_min;
     et.Second = t.tm_sec;
@@ -136,7 +138,7 @@ void Timestamp::SetExpandedTime(const ExpandedTime &value)
     SYSTEMTIME st;
     st.wYear = (WORD)value.Year;
     st.wMonth = (WORD)value.Month;
-    st.wDay = (WORD)value.Day;
+    st.wDay = (WORD)value.DayOfMonth;
     st.wDayOfWeek = (WORD)0;
     st.wHour = (WORD)value.Hour;
     st.wMinute = (WORD)value.Minute;

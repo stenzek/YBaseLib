@@ -16,7 +16,8 @@ public:
     {
         uint32 Year;        // 0-...
         uint32 Month;       // 1-12
-        uint32 Day;         // 1-31
+        uint32 DayOfMonth;  // 1-31
+        uint32 DayOfWeek;   // 0-6, starting at Sunday
         uint32 Hour;        // 0-23
         uint32 Minute;      // 0-59
         uint32 Second;      // 0-59
