@@ -1,4 +1,6 @@
 #include "YBaseLib/CRC32.h"
+#include "YBaseLib/ByteStream.h"
+#include "YBaseLib/String.h"
 
 static uint32 Crc32_ComputeBuf(uint32 inCrc32, const void *buf, size_t bufLen);
 
@@ -8,9 +10,45 @@ CRC32::CRC32(uint32 start /*= 0*/)
 
 }
 
-void CRC32::Update(const void *buf, size_t len)
+void CRC32::HashBytes(const void *buf, size_t len)
 {
     m_currentCRC = Crc32_ComputeBuf(m_currentCRC, buf, len);
+}
+
+void CRC32::HashString(const String &str)
+{
+    if (str.GetLength() > 0)
+        m_currentCRC = Crc32_ComputeBuf(m_currentCRC, str.GetCharArray(), str.GetLength());
+}
+
+bool CRC32::HashStream(ByteStream *pStream, bool seekToStart /* = false */, bool restorePosition /* = false */)
+{
+    uint64 currentPosition = pStream->GetPosition();
+    if (seekToStart)
+        pStream->SeekAbsolute(0);
+
+    bool result = HashStreamPartial(pStream, pStream->GetSize() - pStream->GetPosition());
+    if (restorePosition)
+        pStream->SeekAbsolute(currentPosition);
+
+    return result;
+}
+
+bool CRC32::HashStreamPartial(ByteStream *pStream, uint64 count)
+{
+    static const uint32 BUFFER_SIZE = 1024;
+    byte buffer[BUFFER_SIZE];
+    while (count > 0)
+    {
+        uint32 readCount = (count > BUFFER_SIZE) ? BUFFER_SIZE : (uint32)count;
+        if (!pStream->Read2(buffer, readCount))
+            return false;
+
+        m_currentCRC = Crc32_ComputeBuf(m_currentCRC, buffer, readCount);
+        count -= readCount;
+    }
+
+    return true;
 }
 
 void CRC32::Reset()
