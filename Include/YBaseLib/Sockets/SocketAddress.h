@@ -21,3 +21,10 @@ private:
     Type m_type;
     byte m_data[128];
 };
+
+// struct SocketAddressIPv4 : public SocketAddress
+// {
+//     virtual Type GetType() { return SocketAddress::Type_IPv4; }
+//     virtual void ToString(String &destination) const override final;
+//     virtual void 
+// };

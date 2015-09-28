@@ -2,20 +2,19 @@
 #include "YBaseLib/Common.h"
 #include "YBaseLib/ReferenceCounted.h"
 
-class SocketAddress;
-class StreamSocketTransport;
+struct SocketAddress;
+class StreamSocketImpl;
 class SocketMultiplexer;
 
 class StreamSocket : public ReferenceCounted
 {
 public:
-    StreamSocket(StreamSocketTransport *pTransport = nullptr);
+    StreamSocket(SocketMultiplexer *pMultiplexer, StreamSocketImpl *pImpl);
     virtual ~StreamSocket();
 
-    bool Connect(const SocketAddress *pAddress);
-    bool BeginConnect(const SocketAddress *pAddress);
-
-    uint32 Send(const void *pBuffer, size_t bufferLength);
+    size_t Read(void *pBuffer, size_t bufferSize);
+    size_t Write(const void *pBuffer, size_t bufferSize);
+    void Close();
 
 protected:
     virtual void OnConnected();
@@ -23,6 +22,10 @@ protected:
     virtual void OnRead();
 
 protected:
-    StreamSocketTransport *m_pTransport;
+    SocketMultiplexer *m_pMultiplexer;
+    StreamSocketImpl *m_pImpl;
     bool m_connected;
+
+    // Ugly, but needed in order to call the events.
+    friend SocketMultiplexer;
 };
