@@ -87,6 +87,110 @@ size_t BufferedStreamSocket::Write(const void *pBuffer, size_t bufferSize)
     return writtenBytes;
 }
 
+size_t BufferedStreamSocket::WriteVector(const void **ppBuffers, const size_t *pBufferLengths, size_t numBuffers)
+{
+    m_lock.Lock();
+
+    if (!m_connected || numBuffers == 0)
+    {
+        m_lock.Unlock();
+        return 0;
+    }
+
+    // Write buffer currently being used?
+    // Don't send out-of-order, push to the write buffer.
+    size_t writtenBytes = 0;
+    if (m_sendBuffer.GetBufferUsed() == 0)
+    {
+#ifdef Y_PLATFORM_WINDOWS
+        WSABUF *bufs = (WSABUF *)alloca(sizeof(WSABUF) * numBuffers);
+        for (size_t i = 0; i < numBuffers; i++)
+        {
+            bufs[i].buf = (CHAR *)ppBuffers[i];
+            bufs[i].len = (ULONG)pBufferLengths[i];
+        }
+
+        DWORD bytesSent = 0;
+        if (WSASend(m_fileDescriptor, bufs, numBuffers, &bytesSent, 0, nullptr, nullptr) == SOCKET_ERROR)
+        {
+            if (WSAGetLastError() != WSAEWOULDBLOCK)
+            {
+                // Socket error.
+                CloseWithError();
+                m_lock.Unlock();
+                return 0;
+            }
+        }
+
+        writtenBytes = (size_t)bytesSent;
+
+#else       // Y_PLATFORM_WINDOWS
+
+        iovec *bufs = (iovec *)alloca(sizeof(iovec) * numBuffers);
+        for (size_t i = 0; i < numBuffers; i++)
+        {
+            bufs[i].iov_base = (void *)ppBuffers[i];
+            bufs[i].iov_len = pBufferLengths[i];
+        }
+
+        ssize_t res = writev(m_fileDescriptor, bufs, numBuffers);
+        if (res < 0)
+        {
+            if (errno != EAGAIN)
+            {
+                // Socket error.
+                CloseWithError();
+                m_lock.Unlock();
+                return 0;
+            }
+
+            res = 0;
+        }
+
+        writtenBytes = (size_t)res;
+
+#endif      // Y_PLATFORM_WINDOWS
+    }
+
+    // Find the buffer that we got up to
+    size_t currentOffset = 0;
+    bool registerForWrites = false;
+    for (size_t i = 0; i < numBuffers; i++)
+    {
+        // Was this buffer only partially completed?
+        if ((currentOffset + pBufferLengths[i]) <= writtenBytes)
+        {
+            currentOffset += pBufferLengths[i];
+            continue;
+        }
+
+        // Copy remaining bytes into write buffer, and register for write notifications.
+        size_t bytesWrittenInBuffer = (writtenBytes - currentOffset);
+        size_t bytesRemainingInBuffer = pBufferLengths[i] - bytesWrittenInBuffer;
+        size_t bufferSpace = m_sendBuffer.GetContiguousBufferSpace();
+        if (m_sendBuffer.GetBufferUsed() == 0)
+            registerForWrites = true;
+
+        // Write to buffer.
+        size_t bytesToWriteToBuffer = Min(bytesRemainingInBuffer, bufferSpace);
+        if (m_sendBuffer.Write((const byte *)ppBuffers[i] + bytesWrittenInBuffer, bytesToWriteToBuffer))
+            writtenBytes += bytesToWriteToBuffer;
+
+        // Was this a complete write?
+        if (bytesToWriteToBuffer == bytesRemainingInBuffer)
+            currentOffset += pBufferLengths[i];
+        else
+            break;
+    }
+
+    // Register for write notifications.
+    if (registerForWrites)
+        m_pMultiplexer->SetNotificationMask(this, m_fileDescriptor, SocketMultiplexer::EventType_Read | SocketMultiplexer::EventType_Write);
+
+    m_lock.Unlock();
+    return writtenBytes;
+}
+
 bool BufferedStreamSocket::AcquireReadBuffer(const void **ppBuffer, size_t *pBytesAvailable)
 {
     m_lock.Lock();
@@ -116,6 +220,11 @@ void BufferedStreamSocket::OnConnected()
 void BufferedStreamSocket::OnDisconnected(Error *pError)
 {
     StreamSocket::OnDisconnected(pError);
+}
+
+void BufferedStreamSocket::OnRead()
+{
+    StreamSocket::OnRead();
 }
 
 void BufferedStreamSocket::OnReadEvent()

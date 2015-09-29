@@ -13,6 +13,7 @@ public:
     // Hide StreamSocket read/write methods.
     size_t Read(void *pBuffer, size_t bufferSize);
     size_t Write(const void *pBuffer, size_t bufferSize);
+    size_t WriteVector(const void **ppBuffers, const size_t *pBufferLengths, size_t numBuffers);
 
     // Access to read buffer.
     bool AcquireReadBuffer(const void **ppBuffer, size_t *pBytesAvailable);

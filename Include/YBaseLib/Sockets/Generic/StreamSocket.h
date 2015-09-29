@@ -26,6 +26,7 @@ public:
     // Read/write
     size_t Read(void *pBuffer, size_t bufferSize);
     size_t Write(const void *pBuffer, size_t bufferSize);
+    size_t WriteVector(const void **ppBuffers, const size_t *pBufferLengths, size_t numBuffers);
 
 protected:
     virtual void OnConnected();

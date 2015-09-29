@@ -88,6 +88,69 @@ size_t StreamSocket::Write(const void *pBuffer, size_t bufferLength)
     return len;
 }
 
+size_t StreamSocket::WriteVector(const void **ppBuffers, const size_t *pBufferLengths, size_t numBuffers)
+{
+    m_lock.Lock();
+
+    if (!m_connected || numBuffers == 0)
+    {
+        m_lock.Unlock();
+        return 0;
+    }
+
+#ifdef Y_PLATFORM_WINDOWS
+
+    WSABUF *bufs = (WSABUF *)alloca(sizeof(WSABUF) * numBuffers);
+    for (size_t i = 0; i < numBuffers; i++)
+    {
+        bufs[i].buf = (CHAR *)ppBuffers[i];
+        bufs[i].len = (ULONG)pBufferLengths[i];
+    }
+
+    DWORD bytesSent = 0;
+    if (WSASend(m_fileDescriptor, bufs, numBuffers, &bytesSent, 0, nullptr, nullptr) == SOCKET_ERROR)
+    {
+        if (WSAGetLastError() != WSAEWOULDBLOCK)
+        {
+            // Socket error.
+            CloseWithError();
+            m_lock.Unlock();
+            return 0;
+        }
+    }
+
+    m_lock.Unlock();
+    return (size_t)bytesSent;
+
+#else       // Y_PLATFORM_WINDOWS
+
+    iovec *bufs = (iovec *)alloca(sizeof(iovec) * numBuffers);
+    for (size_t i = 0; i < numBuffers; i++)
+    {
+        bufs[i].iov_base = (void *)ppBuffers[i];
+        bufs[i].iov_len = pBufferLengths[i];
+    }
+
+    ssize_t res = writev(m_fileDescriptor, bufs, numBuffers);
+    if (res < 0)
+    {
+        if (errno != EAGAIN)
+        {
+            // Socket error.
+            CloseWithError();
+            m_lock.Unlock();
+            return 0;
+        }
+
+        res = 0;
+    }
+
+    m_lock.Unlock();
+    return (size_t)res;
+
+#endif      // Y_PLATFORM_WINDOWS
+}
+
 void StreamSocket::Close()
 {
     m_lock.Lock();
