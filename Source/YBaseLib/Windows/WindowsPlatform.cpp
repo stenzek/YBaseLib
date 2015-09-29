@@ -1,13 +1,16 @@
 #include "YBaseLib/Platform.h"
+#include "YBaseLib/Error.h"
 
 #if defined(Y_PLATFORM_WINDOWS)
+#include "YBaseLib/Windows/WindowsHeaders.h"
 #include "YBaseLib/CString.h"
 #include "YBaseLib/FileSystem.h"
+#include "YBaseLib/Log.h"
 #include <cstdlib>
 #include <io.h>
-#include "YBaseLib/Windows/WindowsHeaders.h"
 #include <Psapi.h>
 #pragma comment(lib, "psapi.lib")
+Log_SetChannel(Platform);
 
 void Platform::MakeTempFileName(char *filename, uint32 len)
 {
@@ -84,6 +87,32 @@ size_t Platform::GetProgramMemoryUsage()
     pmc.cb = sizeof(pmc);
     GetProcessMemoryInfo(GetCurrentProcess(), (PPROCESS_MEMORY_COUNTERS)&pmc, sizeof(pmc));
     return pmc.PrivateUsage;
+}
+
+#include <WinSock2.h>
+
+bool Platform::InitializeSocketSupport(Error *pError)
+{
+    static bool initialized = false;
+    if (initialized)
+        return true;
+
+    WSADATA wsd;
+    if (WSAStartup(MAKEWORD(2, 2), &wsd) != 0)
+    {
+        if (pError != nullptr)
+            pError->SetErrorSocket(WSAGetLastError());
+        
+        Log_ErrorPrintf("WSAStartup failed: %s", Error::CreateErrorSocket(WSAGetLastError()).GetErrorCodeAndDescription().GetCharArray());
+        return false;
+    }
+
+    // Register cleanup function
+    atexit([]() -> void {
+        WSACleanup();
+    });
+    initialized = true;
+    return true;
 }
 
 #endif          // Y_PLATFORM_WINDOWS

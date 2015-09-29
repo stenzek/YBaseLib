@@ -2,6 +2,7 @@
 #include "YBaseLib/Sockets/StreamSocket.h"
 #include "YBaseLib/Sockets/ListenSocket.h"
 #include "YBaseLib/NumericLimits.h"
+#include "YBaseLib/Platform.h"
 #include "YBaseLib/Thread.h"
 #include "YBaseLib/Error.h"
 #include "YBaseLib/Log.h"
@@ -28,8 +29,11 @@ SocketMultiplexer::~SocketMultiplexer()
     CloseAll();
 }
 
-SocketMultiplexer *SocketMultiplexer::Create()
+SocketMultiplexer *SocketMultiplexer::Create(Error *pError)
 {
+    if (!Platform::InitializeSocketSupport(pError))
+        return nullptr;
+
     return new SocketMultiplexer();
 }
 

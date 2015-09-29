@@ -38,7 +38,7 @@ public:
     SOCKET_MULTIPLEXER_TYPE GetType() const { return SOCKET_MULTIPLEXER_TYPE_GENERIC; }
 
     // Factory method.
-    static SocketMultiplexer *Create();
+    static SocketMultiplexer *Create(Error *pError);
 
     // Public interface
     template<class T> ListenSocket *CreateListenSocket(const SocketAddress *pAddress, Error *pError);
