@@ -32,6 +32,7 @@ bool SocketAddress::Parse(Type type, const char *address, uint32 port, SocketAdd
     {
     case Type_IPv4:
         {
+            pOutAddress->m_type = Type_IPv4;
             sockaddr_in *pSockaddrIn = reinterpret_cast<sockaddr_in *>(pOutAddress->m_data);
             Y_memzero(pSockaddrIn, sizeof(sockaddr_in));
             pSockaddrIn->sin_family = AF_INET;
@@ -45,6 +46,7 @@ bool SocketAddress::Parse(Type type, const char *address, uint32 port, SocketAdd
 
     case Type_IPv6:
         {
+            pOutAddress->m_type = Type_IPv6;
             sockaddr_in6 *pSockaddrIn = reinterpret_cast<sockaddr_in6 *>(pOutAddress->m_data);
             Y_memzero(pSockaddrIn, sizeof(sockaddr_in6));
             pSockaddrIn->sin6_family = AF_INET;

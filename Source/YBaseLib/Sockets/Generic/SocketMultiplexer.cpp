@@ -306,6 +306,7 @@ void SocketMultiplexer::PollEvents(uint32 milliseconds)
             FD_SET(boundSocket.FileDescriptor, &writeFds);
 
         maxFileDescriptor = Max(boundSocket.FileDescriptor, maxFileDescriptor);
+        setCount++;
     }
     m_boundSocketLock.Unlock();
 

@@ -79,16 +79,12 @@ void Error::SetErrorErrno(int err)
 
 void Error::SetErrorSocket(int err)
 {
-    m_type = ERROR_TYPE_SOCKET;
-    m_error.socketerr = err;
-
-    m_codeString.Format("%i", err);
-
-    const char *messageStr = strerror(err);
-    if (messageStr != nullptr)
-        m_message = messageStr;
-    else
-        m_message = "<Could not get error message>";
+    // Socket errors are win32 errors on windows
+#ifdef Y_PLATFORM_WINDOWS
+    SetErrorCodeWin32(err);
+#else
+    SetErrorErrno(err);
+#endif
 }
 
 void Error::SetErrorUser(int32 err, const char *msg)

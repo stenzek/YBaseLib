@@ -101,15 +101,15 @@ private:
 template<class T>
 ListenSocket *SocketMultiplexer::CreateListenSocket(const SocketAddress *pAddress, Error *pError)
 {
-    CreateStreamSocketCallback callback = []() -> StreamSocket * { return new T(); }
+    CreateStreamSocketCallback callback = []() -> StreamSocket * { return new T(); };
     return InternalCreateListenSocket(pAddress, callback, pError);
 }
 
 template<class T>
 T *SocketMultiplexer::ConnectStreamSocket(const SocketAddress *pAddress, Error *pError)
 {
-    CreateStreamSocketCallback callback = []() -> StreamSocket * { return new T(); }
-    return InternalConnectStreamSocket(pAddress, callback, pError);
+    CreateStreamSocketCallback callback = []() -> StreamSocket * { return new T(); };
+    return static_cast<T *>(InternalConnectStreamSocket(pAddress, callback, pError));
 }
 
 #endif      // Y_SOCKET_IMPLEMENTATION_GENERIC

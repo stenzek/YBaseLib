@@ -232,7 +232,35 @@ void BufferedStreamSocket::OnReadEvent()
     m_lock.Lock();
 
     if (m_connected)
+    {
+        // Pull as many bytes as possible into the read buffer.
+        while (m_receiveBuffer.GetBufferSpace() > 0)
+        {
+            void *pBuffer;
+            size_t contiguousBytes = 1;
+            if (m_receiveBuffer.GetWritePointer(&pBuffer, &contiguousBytes))
+            {
+                int res = recv(m_fileDescriptor, (char *)pBuffer, contiguousBytes, 0);
+                if (res <= 0 && WSAGetLastError() != WSAEWOULDBLOCK)
+                {
+                    CloseWithError();
+                    m_lock.Unlock();
+                    return;
+                }
+
+                if (res > 0)
+                {
+                    m_receiveBuffer.MoveWritePointer((size_t)res);
+                    if ((size_t)res == contiguousBytes)
+                        continue;
+                }
+
+                break;
+            }
+        }
+
         OnRead();
+    }
 
     m_lock.Unlock();
 }

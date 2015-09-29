@@ -9,7 +9,9 @@
 #include <cstdlib>
 #include <io.h>
 #include <Psapi.h>
+#include <WinSock2.h>
 #pragma comment(lib, "psapi.lib")
+#pragma comment(lib, "ws2_32.lib")
 Log_SetChannel(Platform);
 
 void Platform::MakeTempFileName(char *filename, uint32 len)
@@ -88,8 +90,6 @@ size_t Platform::GetProgramMemoryUsage()
     GetProcessMemoryInfo(GetCurrentProcess(), (PPROCESS_MEMORY_COUNTERS)&pmc, sizeof(pmc));
     return pmc.PrivateUsage;
 }
-
-#include <WinSock2.h>
 
 bool Platform::InitializeSocketSupport(Error *pError)
 {
