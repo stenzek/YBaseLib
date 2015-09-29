@@ -13,6 +13,7 @@
 class BaseSocket;
 class ListenSocket;
 class StreamSocket;
+class BufferedStreamSocket;
 
 class SocketMultiplexer : public ReferenceCounted
 {
@@ -28,6 +29,7 @@ public:
     friend BaseSocket;
     friend ListenSocket;
     friend StreamSocket;
+    friend BufferedStreamSocket;
 
 public:
     virtual ~SocketMultiplexer();

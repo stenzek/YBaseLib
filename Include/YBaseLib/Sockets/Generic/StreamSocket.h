@@ -2,11 +2,13 @@
 #include "YBaseLib/Sockets/Common.h"
 #include "YBaseLib/Sockets/BaseSocket.h"
 #include "YBaseLib/Sockets/SocketAddress.h"
+#include "YBaseLib/RecursiveMutex.h"
 #include "YBaseLib/Error.h"
 
 #ifdef Y_SOCKET_IMPLEMENTATION_GENERIC
 
 class ListenSocket;
+class BufferedStreamSocket;
 
 class StreamSocket : public BaseSocket
 {
@@ -16,6 +18,12 @@ public:
 
     virtual void Close() override final;
 
+    // Accessors
+    const SocketAddress *GetLocalAddress() const { return &m_localAddress; }
+    const SocketAddress *GetRemoteAddress() const { return &m_remoteAddress; }
+    bool IsConnected() const { return m_connected; }
+
+    // Read/write
     size_t Read(void *pBuffer, size_t bufferSize);
     size_t Write(const void *pBuffer, size_t bufferSize);
 
@@ -25,22 +33,24 @@ protected:
     virtual void OnRead();
 
 private:
-    virtual void OnReadEvent() override final;
-    virtual void OnWriteEvent() override final;
+    virtual void OnReadEvent() override;
+    virtual void OnWriteEvent() override;
 
     bool InitializeSocket(SocketMultiplexer *pMultiplexer, int fileDescriptor, Error *pError);
     void CloseWithError();
 
-protected:
+private:
     SocketMultiplexer *m_pMultiplexer;
     SocketAddress m_localAddress;
     SocketAddress m_remoteAddress;
+    RecursiveMutex m_lock;
     int m_fileDescriptor;
     bool m_connected;
 
     // Ugly, but needed in order to call the events.
     friend SocketMultiplexer;
     friend ListenSocket;
+    friend BufferedStreamSocket;
 };
 
 #endif      // Y_SOCKET_IMPLEMENTATION_GENERIC

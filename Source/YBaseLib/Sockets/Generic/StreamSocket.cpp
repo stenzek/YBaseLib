@@ -30,6 +30,7 @@ StreamSocket::~StreamSocket()
 
 size_t StreamSocket::Read(void *pBuffer, size_t bufferSize)
 {
+    m_lock.Lock();
     if (!m_connected)
         return 0;
 
@@ -41,21 +42,29 @@ size_t StreamSocket::Read(void *pBuffer, size_t bufferSize)
         if (len < 0 && WSAGetLastError() == WSAEWOULDBLOCK)
         {
             // Not an error. Just means no data is available.
+            m_lock.Unlock();
             return 0;
         }
 
         // error
         CloseWithError();
+        m_lock.Unlock();
         return 0;
     }
 
+    m_lock.Unlock();
     return len;
 }
 
 size_t StreamSocket::Write(const void *pBuffer, size_t bufferLength)
 {
+    m_lock.Lock();
+
     if (!m_connected)
+    {
+        m_lock.Unlock();
         return 0;
+    }
 
     // try a write
     int len = send(m_fileDescriptor, (const char *)pBuffer, bufferLength, 0);
@@ -65,21 +74,29 @@ size_t StreamSocket::Write(const void *pBuffer, size_t bufferLength)
         if (len < 0 && WSAGetLastError() == WSAEWOULDBLOCK)
         {
             // Not an error. Just means no data is available.
+            m_lock.Unlock();
             return 0;
         }
 
         // error
         CloseWithError();
+        m_lock.Unlock();
         return 0;
     }
 
+    m_lock.Unlock();
     return len;
 }
 
 void StreamSocket::Close()
 {
+    m_lock.Lock();
+
     if (!m_connected)
+    {
+        m_lock.Unlock();
         return;
+    }
 
     m_pMultiplexer->SetNotificationMask(this, m_fileDescriptor, 0);
     m_pMultiplexer->RemoveOpenSocket(this);
@@ -90,10 +107,14 @@ void StreamSocket::Close()
     Error error;
     error.SetErrorNone();
     OnDisconnected(&error);
+
+    m_lock.Unlock();
 }
 
 void StreamSocket::CloseWithError()
 {
+    m_lock.Lock();
+
     DebugAssert(m_connected);
 
     Error error;
@@ -110,6 +131,8 @@ void StreamSocket::CloseWithError()
     m_connected = false;
 
     OnDisconnected(&error);
+
+    m_lock.Unlock();
 }
 
 void StreamSocket::OnConnected()
@@ -130,8 +153,12 @@ void StreamSocket::OnRead()
 void StreamSocket::OnReadEvent()
 {
     // forward through
+    m_lock.Lock();
+    
     if (m_connected)
         OnRead();
+
+    m_lock.Unlock();
 }
 
 void StreamSocket::OnWriteEvent()
@@ -174,6 +201,11 @@ bool StreamSocket::InitializeSocket(SocketMultiplexer *pMultiplexer, int fileDes
     // register for notifications
     m_pMultiplexer->AddOpenSocket(this);
     m_pMultiplexer->SetNotificationMask(this, m_fileDescriptor, SocketMultiplexer::EventType_Read);
+
+    // trigger connected notitifcation
+    m_lock.Lock();
+    OnConnected();
+    m_lock.Unlock();
     return true;
 }
 
