@@ -6,6 +6,7 @@
 #include "YBaseLib/PODArray.h"
 #include "YBaseLib/Thread.h"
 #include "YBaseLib/Mutex.h"
+#include "YBaseLib/Event.h"
 #include "YBaseLib/Error.h"
 
 #ifdef Y_SOCKET_IMPLEMENTATION_GENERIC
@@ -82,14 +83,18 @@ private:
     PODArray<BaseSocket *> m_openSockets;
     Mutex m_openSocketLock;
 
+    // Wakeup when sleeping with no sockets.
+    Event m_wakeupEvent;
+
 private:
     // Worker thread
     class WorkerThread : public Thread
     {
+        friend SocketMultiplexer;
+
     public:
         WorkerThread(SocketMultiplexer *pThis);
         virtual int ThreadEntryPoint() override final;
-        void Stop();
 
     private:
         SocketMultiplexer *m_pThis;

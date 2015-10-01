@@ -62,6 +62,13 @@ bool SocketAddress::Parse(Type type, const char *address, uint32 port, SocketAdd
     return false;
 }
 
+bool SocketAddress::Resolve(const char *address, uint32 port, SocketAddress *pOutAddress)
+{
+    // getaddrinfo()
+    Panic("Not implemented");
+    return false;
+}
+
 void SocketAddress::ToString(String &destination) const
 {
     switch (m_type)

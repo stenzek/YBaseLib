@@ -25,6 +25,9 @@ struct SocketAddress
     // parse interface
     static bool Parse(Type type, const char *address, uint32 port, SocketAddress *pOutAddress);
 
+    // resolve interface
+    static bool Resolve(const char *address, uint32 port, SocketAddress *pOutAddress);
+
     // to string interface
     void ToString(String &destination) const;
     SmallString ToString() const;

@@ -286,6 +286,7 @@ void SocketMultiplexer::SetNotificationMask(BaseSocket *pSocket, int fileDescrip
         m_boundSockets.Add(boundSocket);
     }
 
+    m_wakeupEvent.Signal();
     m_boundSocketLock.Unlock();
 }
 
@@ -293,24 +294,44 @@ void SocketMultiplexer::PollEvents(uint32 milliseconds)
 {
     fd_set readFds;
     fd_set writeFds;
-    FD_ZERO(&readFds);
-    FD_ZERO(&writeFds);
-
-    // fill stuff
-    int maxFileDescriptor = 0;
+    int maxFileDescriptor = -1;
     uint32 setCount = 0;
-    m_boundSocketLock.Lock();
-    for (BoundSocket &boundSocket : m_boundSockets)
-    {
-        if (boundSocket.EventMask & EventType_Read)
-            FD_SET(boundSocket.FileDescriptor, &readFds);
-        if (boundSocket.EventMask & EventType_Write)
-            FD_SET(boundSocket.FileDescriptor, &writeFds);
 
-        maxFileDescriptor = Max(boundSocket.FileDescriptor, maxFileDescriptor);
-        setCount++;
+    // loop until we get some sockets
+    for (;;)
+    {
+        // clear set
+        FD_ZERO(&readFds);
+        FD_ZERO(&writeFds);
+
+        // fill stuff
+        m_boundSocketLock.Lock();
+        for (BoundSocket &boundSocket : m_boundSockets)
+        {
+            if (boundSocket.EventMask & EventType_Read)
+                FD_SET(boundSocket.FileDescriptor, &readFds);
+            if (boundSocket.EventMask & EventType_Write)
+                FD_SET(boundSocket.FileDescriptor, &writeFds);
+
+            maxFileDescriptor = Max(boundSocket.FileDescriptor, maxFileDescriptor);
+            setCount++;
+        }
+        m_boundSocketLock.Unlock();
+        if (setCount > 0)
+            break;
+
+        // win32 select doesn't seem to sleep as one would expect.
+        if (milliseconds == 0)
+            return;
+
+        // in case a socket is added/removed in the meantime.
+        if (!m_wakeupEvent.TryWait(milliseconds))
+            return;
+
+        // exit immediately after this next poll, don't wait.
+        m_wakeupEvent.Reset();
+        milliseconds = 0;
     }
-    m_boundSocketLock.Unlock();
 
     // call select
     timeval tv;
@@ -375,12 +396,6 @@ int SocketMultiplexer::WorkerThread::ThreadEntryPoint()
     return 0;
 }
 
-void SocketMultiplexer::WorkerThread::Stop()
-{
-    m_stopFlag = true;
-    Join();
-}
-
 uint32 SocketMultiplexer::CreateWorkerThreads(uint32 threadCount /*= 0*/)
 {
     // Only a single worker thread permitted.
@@ -403,7 +418,9 @@ void SocketMultiplexer::StopWorkerThreads()
 {
     if (m_pWorkerThread != nullptr)
     {
-        m_pWorkerThread->Stop();
+        m_pWorkerThread->m_stopFlag = true;
+        m_wakeupEvent.Signal();
+        m_pWorkerThread->Join();
         delete m_pWorkerThread;
         m_pWorkerThread = nullptr;
     }
