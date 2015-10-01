@@ -198,6 +198,7 @@ void SocketMultiplexer::AddOpenSocket(BaseSocket *pSocket)
 
     DebugAssert(m_openSockets.IndexOf(pSocket) < 0);
     m_openSockets.Add(pSocket);
+    pSocket->AddRef();
 
     m_openSocketLock.Unlock();
 }
@@ -216,6 +217,7 @@ void SocketMultiplexer::RemoveOpenSocket(BaseSocket *pSocket)
 
     DebugAssert(m_openSockets.IndexOf(pSocket) >= 0);
     m_openSockets.FastRemoveItem(pSocket);
+    pSocket->Release();
 
     m_openSocketLock.Unlock();
 }
@@ -295,7 +297,7 @@ void SocketMultiplexer::PollEvents(uint32 milliseconds)
     FD_ZERO(&writeFds);
 
     // fill stuff
-    int maxFileDescriptor = -1;
+    int maxFileDescriptor = 0;
     uint32 setCount = 0;
     m_boundSocketLock.Lock();
     for (BoundSocket &boundSocket : m_boundSockets)

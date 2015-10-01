@@ -15,7 +15,7 @@ class ListenSocket;
 class StreamSocket;
 class BufferedStreamSocket;
 
-class SocketMultiplexer : public ReferenceCounted
+class SocketMultiplexer
 {
 public:
     enum EventType

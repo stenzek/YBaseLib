@@ -162,13 +162,12 @@ void StreamSocket::Close()
     }
 
     m_pMultiplexer->SetNotificationMask(this, m_fileDescriptor, 0);
-    m_pMultiplexer->RemoveOpenSocket(this);
     closesocket(m_fileDescriptor);
     m_fileDescriptor = -1;
     m_connected = false;
 
     Error error;
-    error.SetErrorNone();
+    error.SetErrorUser((int32)0, "Connection explicitly closed.");
     OnDisconnected(&error);
 
     m_lock.Unlock();
@@ -188,7 +187,6 @@ void StreamSocket::CloseWithError()
         error.SetErrorSocket(errorCode);
 
     m_pMultiplexer->SetNotificationMask(this, m_fileDescriptor, 0);
-    m_pMultiplexer->RemoveOpenSocket(this);
     closesocket(m_fileDescriptor);
     m_fileDescriptor = -1;
     m_connected = false;
@@ -196,6 +194,9 @@ void StreamSocket::CloseWithError()
     OnDisconnected(&error);
 
     m_lock.Unlock();
+
+    // Remove the open socket last. This is because it may be the last reference holder.
+    m_pMultiplexer->RemoveOpenSocket(this);
 }
 
 void StreamSocket::OnConnected()
