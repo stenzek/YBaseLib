@@ -132,11 +132,6 @@
     #define Y_BUILD_CONFIG_STR "Release"
 #endif
 
-// Include windows headers, cut down as much as possible.
-#if defined(Y_PLATFORM_WINDOWS)
-    //#include "WindowsHeaders.h"
-#endif
-
 // Include pthread header on unix platforms.
 #if defined(Y_PLATFORM_POSIX)
     #include <pthread.h>
@@ -236,6 +231,9 @@
 
 // alignment macro
 #define ALIGNED_SIZE(size, alignment) ((size + (decltype(size))((alignment) - 1)) & ~((decltype(size))((alignment) - 1)))
+
+// containing structure address, in windows terms CONTAINING_RECORD. have to use C cast because otherwise const will break it.
+#define CONTAINING_STRUCTURE(address, structure, field) ((structure *)(((byte *)(address)) - offsetof(structure, field)))
 
 // stringify macro
 #ifndef STRINGIFY
