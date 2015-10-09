@@ -8,6 +8,7 @@ CircularBuffer::CircularBuffer()
     , m_pRegionATail(m_pBuffer)
     , m_pRegionBTail(nullptr)
     , m_bufferSize(0)
+    , m_ownsBuffer(true)
 {
 
 }
@@ -30,6 +31,7 @@ CircularBuffer::CircularBuffer(byte *pBuffer, size_t bufferSize)
     , m_pRegionATail(m_pBuffer)
     , m_pRegionBTail(nullptr)
     , m_bufferSize(bufferSize)
+    , m_ownsBuffer(false)
 {
 
 }

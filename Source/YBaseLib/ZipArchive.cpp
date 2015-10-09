@@ -47,7 +47,7 @@ static Timestamp ZipTimeToTimestamp(const uint32 ziptime)
     Timestamp::ExpandedTime expandedTime;
     expandedTime.Year = ((datePart & 0xFE00) / 0x200) + 1980;
     expandedTime.Month = (datePart & 0x1E0) / 0x20;
-    expandedTime.Day = datePart & 0x1F;
+    expandedTime.DayOfMonth = datePart & 0x1F;
     expandedTime.Hour = (timePart & 0xF800) / 0x800;
     expandedTime.Minute = (timePart & 0x7E0) / 0x20;
     expandedTime.Second = (timePart & 0x1F) * 2;
@@ -66,7 +66,7 @@ static uint32 TimestampToZipTime(const Timestamp &ts)
     else if (year >= 80)
         year -= 80;
 
-    return (((expandedTime.Day) + (32 * expandedTime.Month) + (512 * year)) << 16) |
+    return (((expandedTime.DayOfMonth) + (32 * expandedTime.Month) + (512 * year)) << 16) |
            ((expandedTime.Second / 2) + (32 * expandedTime.Minute) + (2048 * expandedTime.Hour));
 }
 

@@ -428,11 +428,12 @@ void *TaskQueue::FifoAllocateTask(uint32 size, bool blockingEvent)
 {
     void *pWritePointer;
     size_t requiredSpace = sizeof(FifoQueueEntryHeader) + size;
-    size_t freeSpace;
+    size_t freeSpace = requiredSpace;
 
     while (!m_taskQueueBuffer.GetWritePointer(&pWritePointer, &freeSpace) || freeSpace < requiredSpace)
     {
         // need to wait until the queue is empty @TODO find a more efficient way of doing this that doesn't spin
+        freeSpace = requiredSpace;
         m_queueLock.Unlock();
         Thread::Yield();
         m_queueLock.Lock();
@@ -445,6 +446,7 @@ void *TaskQueue::FifoAllocateTask(uint32 size, bool blockingEvent)
     FifoQueueEntryHeader *hdr = reinterpret_cast<FifoQueueEntryHeader *>(pWritePointer);
     hdr->Size = sizeof(FifoQueueEntryHeader) + size;
     hdr->BlockingEvent = blockingEvent;
+    hdr->AcceptedFlag = false;
     hdr->CompletedFlag = false;
     return (hdr + 1);
 }
@@ -456,14 +458,28 @@ bool TaskQueue::FifoIsEmpty() const
 
 TaskQueue::FifoQueueEntryHeader *TaskQueue::FifoGetNextTask()
 {
-    const void *pReadPointer;
+    void *pReadPointer;
     size_t availableBytes;
-    if (!m_taskQueueBuffer.GetReadPointer(&pReadPointer, &availableBytes))
-        return false;
+    if (!m_taskQueueBuffer.GetReadPointer(const_cast<const void **>(&pReadPointer), &availableBytes))
+        return nullptr;
 
-    const FifoQueueEntryHeader *hdr = reinterpret_cast<const FifoQueueEntryHeader *>(pReadPointer);
-    DebugAssert(!hdr->CompletedFlag && availableBytes >= hdr->Size);
-    return const_cast<FifoQueueEntryHeader *>(hdr);
+    FifoQueueEntryHeader *hdr = reinterpret_cast<FifoQueueEntryHeader *>(pReadPointer);
+    while (availableBytes > 0)
+    {
+        DebugAssert(availableBytes >= hdr->Size);
+        availableBytes -= hdr->Size;
+        if (!hdr->AcceptedFlag)
+        {
+            hdr->AcceptedFlag = true;
+            return hdr;
+        }
+
+        // move to next entry
+        hdr = reinterpret_cast<FifoQueueEntryHeader *>(reinterpret_cast<byte *>(hdr) + hdr->Size);
+    }
+
+    // Somehow got woken but all tasks are in progress
+    return nullptr;
 }
 
 void TaskQueue::FifoReleaseTask(FifoQueueEntryHeader *taskHdr)
@@ -477,17 +493,25 @@ void TaskQueue::FifoReleaseTask(FifoQueueEntryHeader *taskHdr)
     if (!m_taskQueueBuffer.GetReadPointer(&pReadPointer, &availableBytes))
         Panic("FIFO corruption");
 
-    // squish this task, and remove as many as possible
-    size_t bytesToRemove = 0;
-    DebugAssert(taskHdr->CompletedFlag);
-    while (taskHdr->CompletedFlag)
+    // are we at the front of the queue?
+    if (pReadPointer == taskHdr)
     {
-        bytesToRemove += taskHdr->Size;
-        taskHdr = reinterpret_cast<FifoQueueEntryHeader *>(reinterpret_cast<byte *>(taskHdr) + taskHdr->Size);
-    }
+        // squish this task, and remove as many as possible
+        size_t bytesToRemove = 0;
+        DebugAssert(taskHdr->CompletedFlag);
+        while (taskHdr->CompletedFlag)
+        {
+            DebugAssert((bytesToRemove + taskHdr->Size) <= availableBytes);
+            bytesToRemove += taskHdr->Size;
+            if (bytesToRemove == availableBytes)
+                break;
 
-    // free from the buffer
-    DebugAssert(bytesToRemove <= availableBytes);
-    m_taskQueueBuffer.MoveReadPointer(availableBytes);
+            taskHdr = reinterpret_cast<FifoQueueEntryHeader *>(reinterpret_cast<byte *>(taskHdr) + taskHdr->Size);
+        }
+
+        // free from the buffer
+        DebugAssert(bytesToRemove <= availableBytes);
+        m_taskQueueBuffer.MoveReadPointer(bytesToRemove);
+    }
 }
 

@@ -79,7 +79,7 @@ public:
     // Queue lambda call using move semantics
     template<class T> void QueueLambdaTask(T &&lambda)
     {
-        if (m_taskQueueSize == 0)
+        if (m_taskQueueBuffer.GetBufferSize() == 0)
         {
             lambda();
             return;
@@ -97,7 +97,7 @@ public:
     void QueueBlockingTask(Task *pTask, uint32 taskSize);
     template<class T> void QueueBlockingLambdaTask(const T &lambda)
     {
-        if (m_taskQueueSize == 0 || m_workerThreads.IsEmpty())
+        if (m_taskQueueBuffer.GetBufferSize() == 0 || m_workerThreads.IsEmpty())
         {
             lambda();
             return;
@@ -157,6 +157,7 @@ private:
     {
         uint32 Size;
         bool BlockingEvent;
+        bool AcceptedFlag;
         bool CompletedFlag;
     };
 
