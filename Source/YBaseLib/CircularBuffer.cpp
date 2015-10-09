@@ -111,8 +111,14 @@ bool CircularBuffer::GetReadPointer(const void **ppReadPointer, size_t *pByteCou
 
 void CircularBuffer::MoveReadPointer(size_t byteCount)
 {
-    // move A's read pointer forward
     DebugAssert(byteCount <= static_cast<size_t>(m_pRegionATail - m_pRegionAHead));
+
+    // walk all over the bytes - only in debug mode
+#ifdef Y_BUILD_CONFIG_DEBUG
+    Y_memset(m_pRegionAHead, 0xDE, byteCount);
+#endif
+
+    // move A's read pointer forward
     m_pRegionAHead += byteCount;
 
     // consumed region A?
