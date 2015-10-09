@@ -57,7 +57,7 @@ void ListenSocket::OnReadEvent()
     // connection incoming
     sockaddr_storage sa;
     socklen_t salen = sizeof(sa);
-    int newFileDescriptor = accept(m_fileDescriptor, (sockaddr *)&sa, &salen);
+    SOCKET newFileDescriptor = accept(m_fileDescriptor, (sockaddr *)&sa, &salen);
     if (newFileDescriptor < 0)
         return;
 

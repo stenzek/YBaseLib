@@ -40,13 +40,13 @@ SocketMultiplexer *SocketMultiplexer::Create(Error *pError)
 ListenSocket *SocketMultiplexer::InternalCreateListenSocket(const SocketAddress *pAddress, CreateStreamSocketCallback callback, Error *pError)
 {
     // create and bind socket
-    int fileDescriptor = -1;
+    SOCKET fileDescriptor = INVALID_SOCKET;
     switch (pAddress->GetType())
     {
     case SocketAddress::Type_IPv4:
         {
             fileDescriptor = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-            if (fileDescriptor < 0)
+            if (fileDescriptor == INVALID_SOCKET)
             {
                 if (pError != nullptr)
                     pError->SetErrorSocket(WSAGetLastError());
@@ -78,7 +78,7 @@ ListenSocket *SocketMultiplexer::InternalCreateListenSocket(const SocketAddress 
     case SocketAddress::Type_IPv6:
         {
             fileDescriptor = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
-            if (fileDescriptor < 0)
+            if (fileDescriptor == INVALID_SOCKET)
             {
                 if (pError != nullptr)
                     pError->SetErrorSocket(WSAGetLastError());
@@ -129,7 +129,7 @@ StreamSocket *SocketMultiplexer::InternalConnectStreamSocket(const SocketAddress
     case SocketAddress::Type_IPv4:
         {
             fileDescriptor = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-            if (fileDescriptor < 0)
+            if (fileDescriptor == INVALID_SOCKET)
             {
                 if (pError != nullptr)
                     pError->SetErrorSocket(WSAGetLastError());
@@ -152,7 +152,7 @@ StreamSocket *SocketMultiplexer::InternalConnectStreamSocket(const SocketAddress
     case SocketAddress::Type_IPv6:
         {
             fileDescriptor = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
-            if (fileDescriptor < 0)
+            if (fileDescriptor == INVALID_SOCKET)
             {
                 if (pError != nullptr)
                     pError->SetErrorSocket(WSAGetLastError());
@@ -230,8 +230,8 @@ void SocketMultiplexer::CloseAll()
     {
         // pull everything into a list first
         BaseSocket **ppSockets = (BaseSocket **)alloca(sizeof(BaseSocket *) * m_openSockets.GetSize());
-        size_t nSockets = m_openSockets.GetSize();
-        for (size_t i = 0; i < nSockets; i++)
+        uint32 nSockets = m_openSockets.GetSize();
+        for (uint32 i = 0; i < nSockets; i++)
         {
             ppSockets[i] = m_openSockets[i];
             ppSockets[i]->AddRef();
@@ -241,7 +241,7 @@ void SocketMultiplexer::CloseAll()
         m_openSocketLock.Unlock();
 
         // close all sockets
-        for (size_t i = 0; i < nSockets; i++)
+        for (uint32 i = 0; i < nSockets; i++)
         {
             ppSockets[i]->Close();
             ppSockets[i]->Release();

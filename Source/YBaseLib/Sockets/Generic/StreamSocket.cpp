@@ -35,7 +35,7 @@ size_t StreamSocket::Read(void *pBuffer, size_t bufferSize)
         return 0;
 
     // try a read
-    int len = recv(m_fileDescriptor, (char *)pBuffer, bufferSize, 0);
+    ssize_t len = recv(m_fileDescriptor, (char *)pBuffer, bufferSize, 0);
     if (len <= 0)
     {
         // Check for EAGAIN
@@ -67,7 +67,7 @@ size_t StreamSocket::Write(const void *pBuffer, size_t bufferLength)
     }
 
     // try a write
-    int len = send(m_fileDescriptor, (const char *)pBuffer, bufferLength, 0);
+    ssize_t len = send(m_fileDescriptor, (const char *)pBuffer, bufferLength, 0);
     if (len <= 0)
     {
         // Check for EAGAIN
@@ -108,7 +108,7 @@ size_t StreamSocket::WriteVector(const void **ppBuffers, const size_t *pBufferLe
     }
 
     DWORD bytesSent = 0;
-    if (WSASend(m_fileDescriptor, bufs, numBuffers, &bytesSent, 0, nullptr, nullptr) == SOCKET_ERROR)
+    if (WSASend(m_fileDescriptor, bufs, (DWORD)numBuffers, &bytesSent, 0, nullptr, nullptr) == SOCKET_ERROR)
     {
         if (WSAGetLastError() != WSAEWOULDBLOCK)
         {

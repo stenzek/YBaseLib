@@ -52,8 +52,8 @@ size_t BufferedStreamSocket::Write(const void *pBuffer, size_t bufferSize)
     if (m_sendBuffer.GetBufferUsed() == 0)
     {
         // Send as many bytes as possible immediately. If this fails, push to the write buffer.
-        int res = send(m_fileDescriptor, (const char *)pBuffer, bufferSize, 0);
-        writtenBytes = (size_t)Max(res, 0);
+        ssize_t res = send(m_fileDescriptor, (const char *)pBuffer, bufferSize, 0);
+        writtenBytes = (size_t)Max(res, (ssize_t)0);
 
         // Socket error?
         if (res < 0 && WSAGetLastError() != WSAEWOULDBLOCK)
@@ -111,7 +111,7 @@ size_t BufferedStreamSocket::WriteVector(const void **ppBuffers, const size_t *p
         }
 
         DWORD bytesSent = 0;
-        if (WSASend(m_fileDescriptor, bufs, numBuffers, &bytesSent, 0, nullptr, nullptr) == SOCKET_ERROR)
+        if (WSASend(m_fileDescriptor, bufs, (DWORD)numBuffers, &bytesSent, 0, nullptr, nullptr) == SOCKET_ERROR)
         {
             if (WSAGetLastError() != WSAEWOULDBLOCK)
             {
@@ -240,7 +240,7 @@ void BufferedStreamSocket::OnReadEvent()
             size_t contiguousBytes = 1;
             if (m_receiveBuffer.GetWritePointer(&pBuffer, &contiguousBytes))
             {
-                int res = recv(m_fileDescriptor, (char *)pBuffer, contiguousBytes, 0);
+                ssize_t res = recv(m_fileDescriptor, (char *)pBuffer, contiguousBytes, 0);
                 if (res <= 0 && WSAGetLastError() != WSAEWOULDBLOCK)
                 {
                     CloseWithError();
@@ -276,7 +276,7 @@ void BufferedStreamSocket::OnWriteEvent()
         const void *pBuffer;
         if (m_sendBuffer.GetReadPointer(&pBuffer, &contiguousBytes))
         {
-            int res = send(m_fileDescriptor, (const char *)pBuffer, contiguousBytes, 0);
+            ssize_t res = send(m_fileDescriptor, (const char *)pBuffer, contiguousBytes, 0);
             if (res < 0 && WSAGetLastError() != WSAEWOULDBLOCK)
             {
                 CloseWithError();

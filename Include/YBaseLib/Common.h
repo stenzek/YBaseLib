@@ -284,6 +284,15 @@
     typedef uint64_t uint64;
 #endif
 
+// VC++ doesn't define ssize_t, so define it here.
+#if defined(Y_COMPILER_MSVC)
+    #ifdef _WIN64
+        typedef signed __int64 ssize_t;
+    #else
+        typedef signed int ssize_t;
+    #endif
+#endif
+
 // allow usage of std::move/forward without the namespace
 using std::move;
 using std::forward;
