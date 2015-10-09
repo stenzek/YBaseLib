@@ -97,7 +97,7 @@ public:
     void QueueBlockingTask(Task *pTask, uint32 taskSize);
     template<class T> void QueueBlockingLambdaTask(const T &lambda)
     {
-        if (m_taskQueueBuffer.GetBufferSize() == 0 || m_workerThreads.IsEmpty())
+        if (m_taskQueueBuffer.GetBufferSize() == 0 || m_workerThreads.IsEmpty() || IsOnWorkerThread())
         {
             lambda();
             return;
@@ -118,6 +118,9 @@ public:
     // executes any pending tasks on the current thread, and blocks until the queue is empty
     // returns true if a task was executed, false if the queue was empty
     bool ExecuteQueuedTasks();
+
+    // helper method for determining if the caller is on a worker thread.
+    bool IsOnWorkerThread() const;
 
 private:
     // worker thread class

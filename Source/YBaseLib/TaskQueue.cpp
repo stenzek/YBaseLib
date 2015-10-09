@@ -2,6 +2,21 @@
 #include "YBaseLib/String.h"
 #include "YBaseLib/Memory.h"
 
+// Pointer to whether the current thread is a worker thread for a task queue.
+// This won't work if a task calls ExecuteQueuedTasks for another queue, but 
+// if you're doing that, it's probably a "bad idea" anyway.
+Y_DECLARE_THREAD_LOCAL(TaskQueue *) s_pCurrentThreadTaskQueue = nullptr;
+static inline void BeginThreadTaskQueueProcessing(TaskQueue *pTaskQueue)
+{
+    DebugAssert(s_pCurrentThreadTaskQueue == nullptr);
+    s_pCurrentThreadTaskQueue = pTaskQueue;
+}
+static inline void EndThreadTaskQueueProcessing(TaskQueue *pTaskQueue)
+{
+    DebugAssert(s_pCurrentThreadTaskQueue == pTaskQueue);
+    s_pCurrentThreadTaskQueue = nullptr;
+}
+
 TaskQueue::TaskQueue()
     : m_workerThreadExitFlag(true)
     , m_activeThreadPoolTasks(0)
@@ -198,7 +213,7 @@ void TaskQueue::QueueTask(Task *pTask, uint32 taskSize)
 
 void TaskQueue::QueueBlockingTask(Task *pTask, uint32 taskSize)
 {
-    if (m_taskQueueBuffer.GetBufferSize() == 0 || m_workerThreads.IsEmpty())
+    if (m_taskQueueBuffer.GetBufferSize() == 0 || m_workerThreads.IsEmpty() || IsOnWorkerThread())
     {
         pTask->Execute();
         return;
@@ -221,6 +236,10 @@ void TaskQueue::QueueBlockingTask(Task *pTask, uint32 taskSize)
 
 bool TaskQueue::ExecuteQueuedTasks()
 {
+    // well we are "temporarily" a worker..
+    BeginThreadTaskQueueProcessing(this);
+
+    // result <- any tasks were executed.
     bool result = false;
     m_queueLock.Lock();
 
@@ -268,7 +287,14 @@ bool TaskQueue::ExecuteQueuedTasks()
     }
 
     m_queueLock.Unlock();
+    EndThreadTaskQueueProcessing(this);
     return result;
+}
+
+bool TaskQueue::IsOnWorkerThread() const
+{
+    // Simply test the per-thread pointer if we're pointed to our task queue.
+    return (s_pCurrentThreadTaskQueue == this);
 }
 
 TaskQueue::WorkerThread::WorkerThread(TaskQueue *pParent)
@@ -281,6 +307,7 @@ int TaskQueue::WorkerThread::ThreadEntryPoint()
 {
     // initialize thread name
     Thread::SetDebugName(String::FromFormat("Task Queue %p Worker", m_this));
+    BeginThreadTaskQueueProcessing(m_this);
 
     // start with it locked
     m_this->m_queueLock.Lock();
@@ -338,6 +365,7 @@ int TaskQueue::WorkerThread::ThreadEntryPoint()
     MemoryBarrier();
 
     m_this->m_queueLock.Unlock();
+    EndThreadTaskQueueProcessing(m_this);
     return 0;
 }
 
@@ -351,6 +379,7 @@ TaskQueue::ThreadPoolTask::ThreadPoolTask(TaskQueue *pParent)
 
 int32 TaskQueue::ThreadPoolTask::ProcessWork()
 {
+    BeginThreadTaskQueueProcessing(m_this);
     m_this->m_queueLock.Lock();
 
     // loop until there are no tasks left
@@ -395,9 +424,9 @@ int32 TaskQueue::ThreadPoolTask::ProcessWork()
 
     // end of this task's work
     m_this->m_queueLock.Unlock();
+    EndThreadTaskQueueProcessing(m_this);
     return 0;
 }
-
 
 void TaskQueue::LockQueueForNewTask()
 {
