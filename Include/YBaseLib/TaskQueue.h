@@ -23,7 +23,7 @@ public:
 
 private:
     template<class T>
-    struct LamdaTask
+    struct LamdaTask : public Task
     {
         T m_callback;
 
@@ -70,7 +70,7 @@ public:
 
         LockQueueForNewTask();
 
-        LamdaTask<T> *trampoline = (LamdaTask<T> *)FifoAllocateTask(sizeof(LamdaTask<T>), false);
+        LamdaTask<T> *trampoline = (LamdaTask<T> *)FifoAllocateTask(sizeof(LamdaTask<T>), nullptr);
         new (trampoline)LamdaTask<T>(lambda);
 
         UnlockQueueForNewTask();
@@ -87,7 +87,7 @@ public:
 
         LockQueueForNewTask();
 
-        LamdaTask<T> *trampoline = (LamdaTask<T> *)FifoAllocateTask(sizeof(LamdaTask<T>), false);
+        LamdaTask<T> *trampoline = (LamdaTask<T> *)FifoAllocateTask(sizeof(LamdaTask<T>), nullptr);
         new (trampoline) LamdaTask<T>(std::move(lambda));
 
         UnlockQueueForNewTask();
@@ -103,18 +103,16 @@ public:
             return;
         }
 
-        // currently blocking events are only supported coming from the main thread
-        DebugAssert(Thread::GetCurrentThreadId() == m_creatorThreadID);
-
         LockQueueForNewTask();
 
-        LamdaTask<T> *trampoline = (LamdaTask<T> *)FifoAllocateTask(sizeof(LamdaTask<T>), true);
+        Barrier *pBarrier;
+        LamdaTask<T> *trampoline = (LamdaTask<T> *)FifoAllocateTask(sizeof(LamdaTask<T>), &pBarrier);
         new (trampoline)LamdaTask<T>(lambda);
 
         UnlockQueueForNewTask();
 
         // block
-        m_barrier.Wait();
+        pBarrier->Wait();
     }
 
     // executes any pending tasks on the current thread, and blocks until the queue is empty
@@ -156,7 +154,7 @@ private:
     struct FifoQueueEntryHeader
     {
         uint32 Size;
-        bool BlockingEvent;
+        Barrier *pBarrier;
         bool AcceptedFlag;
         bool CompletedFlag;
     };
@@ -171,7 +169,7 @@ private:
     void UnlockQueueForNewTask();
 
     // allocate bytes in the queue, assumes that the queue lock is held
-    void *FifoAllocateTask(uint32 size, bool blockingEvent);
+    void *FifoAllocateTask(uint32 size, Barrier **ppBarrier);
 
     // fifo is empty?
     bool FifoIsEmpty() const;
@@ -181,10 +179,11 @@ private:
 
     // release a fifo task
     void FifoReleaseTask(FifoQueueEntryHeader *taskHdr);
-     
-    // creator thread
-    Thread::ThreadIdType m_creatorThreadID;
-    
+
+    // barrier allocator
+    Barrier *AllocateBarrier();
+    void ReleaseBarrier(Barrier *pBarrier);
+       
     // worker thread
     PODArray<WorkerThread *> m_workerThreads;
     bool m_workerThreadExitFlag;
@@ -200,8 +199,11 @@ private:
     RecursiveMutex m_queueLock;
     volatile uint32 m_activeWorkerThreads;
 
-    // events
+    // condition variable for worker wakeup
     ConditionVariable m_conditionVariable;
-    Barrier m_barrier;
+
+    // barrier for sync event pool
+    PODArray<Barrier *> m_barrierPool;
+    size_t m_allocatedBarrierCount;
 };
 

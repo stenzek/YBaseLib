@@ -3,12 +3,11 @@
 #include "YBaseLib/Memory.h"
 
 TaskQueue::TaskQueue()
-    : m_creatorThreadID(0)
-    , m_workerThreadExitFlag(true)
+    : m_workerThreadExitFlag(true)
     , m_activeThreadPoolTasks(0)
     , m_threadPoolYieldToOtherJobs(false)
     , m_activeWorkerThreads(0)
-    , m_barrier(2)
+    , m_allocatedBarrierCount(0)
 {
 
 }
@@ -45,13 +44,17 @@ TaskQueue::~TaskQueue()
     ExitWorkers();
 
     // the queue should be empty at this point
-    DebugAssert(FifoIsEmpty());
+    Assert(FifoIsEmpty());
+
+    // free barriers
+    Assert(m_allocatedBarrierCount == 0);
+    for (uint32 i = 0; i < m_allocatedBarrierCount; i++)
+        delete m_barrierPool[i];
 }
 
 bool TaskQueue::Initialize(uint32 taskQueueSize /* = DefaultQueueSize */, uint32 workerThreadCount /* = 1 */)
 {
     DebugAssert(m_workerThreadExitFlag && m_workerThreads.IsEmpty() && m_pThreadPool == nullptr);
-    m_creatorThreadID = Thread::GetCurrentThreadId();
 
     // allocate queue
     AllocateQueue(taskQueueSize);
@@ -86,7 +89,6 @@ bool TaskQueue::Initialize(uint32 taskQueueSize /* = DefaultQueueSize */, uint32
 bool TaskQueue::Initialize(ThreadPool *pThreadPool, uint32 taskQueueSize /* = DefaultQueueSize */, bool yieldToOtherJobs /* = false */)
 {
     DebugAssert(m_workerThreadExitFlag && m_workerThreads.IsEmpty() && m_pThreadPool == nullptr);
-    m_creatorThreadID = Thread::GetCurrentThreadId();
     m_pThreadPool = pThreadPool;
 
     // allocate queue
@@ -188,7 +190,7 @@ void TaskQueue::QueueTask(Task *pTask, uint32 taskSize)
     LockQueueForNewTask();
 
     // write @TODO(this should be a template function calling copy operator..)
-    void *task = FifoAllocateTask(taskSize, false);
+    void *task = FifoAllocateTask(taskSize, nullptr);
     Y_memcpy(task, pTask, taskSize);
 
     UnlockQueueForNewTask();
@@ -202,21 +204,19 @@ void TaskQueue::QueueBlockingTask(Task *pTask, uint32 taskSize)
         return;
     }
 
-    // currently blocking events are only supported coming from the main thread
-    DebugAssert(Thread::GetCurrentThreadId() == m_creatorThreadID);
-
     // lock before write
     LockQueueForNewTask();
 
     // write @TODO(this should be a template function calling copy operator..)
-    void *task = FifoAllocateTask(taskSize, true);
+    Barrier *barrier;
+    void *task = FifoAllocateTask(taskSize, &barrier);
     Y_memcpy(task, pTask, taskSize);
 
     // unlock
     UnlockQueueForNewTask();
 
     // block
-    m_barrier.Wait();
+    barrier->Wait();
 }
 
 bool TaskQueue::ExecuteQueuedTasks()
@@ -251,8 +251,16 @@ bool TaskQueue::ExecuteQueuedTasks()
         pTask->Execute();
         pTask->~Task();
 
+        // barrier waits
+        if (taskHdr->pBarrier != nullptr)
+            taskHdr->pBarrier->Wait();
+
         // re-lock queue
         m_queueLock.Lock();
+
+        // push barrier back to pool
+        if (taskHdr->pBarrier != nullptr)
+            ReleaseBarrier(taskHdr->pBarrier);
 
         // pop the task off the queue
         FifoReleaseTask(taskHdr);
@@ -312,11 +320,15 @@ int TaskQueue::WorkerThread::ThreadEntryPoint()
         pTask->~Task();
 
         // handle blocking events
-        if (taskHdr->BlockingEvent)
-            m_this->m_barrier.Wait();
+        if (taskHdr->pBarrier != nullptr)
+            taskHdr->pBarrier->Wait();
 
         // hold lock again
         m_this->m_queueLock.Lock();
+
+        // push barrier back to pool
+        if (taskHdr->pBarrier != nullptr)
+            m_this->ReleaseBarrier(taskHdr->pBarrier);
 
         // destruct the task
         m_this->FifoReleaseTask(taskHdr);
@@ -358,11 +370,15 @@ int32 TaskQueue::ThreadPoolTask::ProcessWork()
         pTask->~Task();
 
         // handle blocking events
-        if (taskHdr->BlockingEvent)
-            m_this->m_barrier.Wait();
+        if (taskHdr->pBarrier != nullptr)
+            taskHdr->pBarrier->Wait();
 
         // hold lock again
         m_this->m_queueLock.Lock();
+
+        // push barrier back to pool
+        if (taskHdr->pBarrier != nullptr)
+            m_this->ReleaseBarrier(taskHdr->pBarrier);
 
         // destruct the task
         m_this->FifoReleaseTask(taskHdr);
@@ -424,7 +440,7 @@ void TaskQueue::UnlockQueueForNewTask()
     }
 }
 
-void *TaskQueue::FifoAllocateTask(uint32 size, bool blockingEvent)
+void *TaskQueue::FifoAllocateTask(uint32 size, Barrier **ppBarrier)
 {
     void *pWritePointer;
     size_t requiredSpace = sizeof(FifoQueueEntryHeader) + size;
@@ -445,9 +461,23 @@ void *TaskQueue::FifoAllocateTask(uint32 size, bool blockingEvent)
     // fill in header details
     FifoQueueEntryHeader *hdr = reinterpret_cast<FifoQueueEntryHeader *>(pWritePointer);
     hdr->Size = sizeof(FifoQueueEntryHeader) + size;
-    hdr->BlockingEvent = blockingEvent;
     hdr->AcceptedFlag = false;
     hdr->CompletedFlag = false;
+
+    // need a barrier?
+    if (ppBarrier != nullptr)
+    {
+        // allocate a barrier object
+        hdr->pBarrier = AllocateBarrier();
+        *ppBarrier = hdr->pBarrier;
+    }
+    else
+    {
+        // nope
+        hdr->pBarrier = nullptr;
+    }
+
+    // return pointer to the data
     return (hdr + 1);
 }
 
@@ -513,5 +543,22 @@ void TaskQueue::FifoReleaseTask(FifoQueueEntryHeader *taskHdr)
         DebugAssert(bytesToRemove <= availableBytes);
         m_taskQueueBuffer.MoveReadPointer(bytesToRemove);
     }
+}
+
+Barrier *TaskQueue::AllocateBarrier()
+{
+    m_allocatedBarrierCount++;
+    if (m_barrierPool.GetSize() > 0)
+        return m_barrierPool.PopBack();
+    else
+        return new Barrier(2);
+}
+
+void TaskQueue::ReleaseBarrier(Barrier *pBarrier)
+{
+    DebugAssert(m_allocatedBarrierCount > 0);
+    m_allocatedBarrierCount--;
+
+    m_barrierPool.Add(pBarrier);
 }
 
