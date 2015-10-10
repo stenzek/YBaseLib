@@ -42,25 +42,28 @@ template<class T>
 class AtomicPointer
 {
 public:
-    AtomicPointer() : m_ptr(nullptr) {}
-    AtomicPointer(T *ptr) : m_ptr(ptr) {}
+    inline AtomicPointer() : m_ptr(nullptr) {}
+    inline AtomicPointer(T *ptr) : m_ptr(ptr) {}
 
-    T *Load() const { return m_ptr; }
+    inline T *Load() const { return m_ptr; }
 
-    bool Set(T *ptr) { return (Y_AtomicCompareExchangePointer<T *>(m_ptr, ptr, nullptr) == nullptr); }
-    bool Clear(T *ptr) { return (Y_AtomicCompareExchangePointer<T *>(m_ptr, nullptr, ptr) == nullptr); }
+    inline bool Set(T *ptr) { return (Y_AtomicCompareExchangePointer<T *>(m_ptr, ptr, nullptr) == nullptr); }
+    inline bool Clear(T *ptr) { return (Y_AtomicCompareExchangePointer<T *>(m_ptr, nullptr, ptr) == nullptr); }
 
-    const T &operator*() const { return *Load(); }
-    T &operator*() { return *Load(); }
-    const T *operator->() const { return Load(); }
-    T *operator->() { return Load(); }
-    operator const T *() const { return Load(); }
-    operator T *() { return Load(); }
+    inline const T &operator*() const { return *Load(); }
+    inline T &operator*() { return *Load(); }
+    inline const T *operator->() const { return Load(); }
+    inline T *operator->() { return Load(); }
+    inline operator const T *() const { return Load(); }
+    inline operator T *() { return Load(); }
 
-    bool operator==(const AtomicPointer<T> &Other) const { return (Load() == Other.Load()); }
-    bool operator!=(const AtomicPointer<T> &Other) const { return (Load() != Other.Load()); }
-    bool operator==(const T *pPtr) const { return (Load() == Load()); }
-    bool operator!=(const T *pPtr) const { return (Load() != Load()); }
+    inline bool operator==(const AtomicPointer<T> &Other) const { return (Load() == Other.Load()); }
+    inline bool operator!=(const AtomicPointer<T> &Other) const { return (Load() != Other.Load()); }
+    inline bool operator==(const T *pPtr) const { return (Load() == Load()); }
+    inline bool operator!=(const T *pPtr) const { return (Load() != Load()); }
+
+    // remove assignment operators
+    DeclareNonCopyable(AtomicPointer);
 
 private:
     Y_ATOMIC_PTR_DECL(T) m_ptr;
