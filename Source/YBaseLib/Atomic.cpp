@@ -51,8 +51,8 @@ template<> uint64 Y_AtomicAdd(volatile uint64 &Value, uint64 AddVal) { return In
 #endif
 
 // pointers
-void *Y_AtomicCompareExchangeVoidPointer(volatile void *&Pointer, void *Exchange, void *Comparand) { return InterlockedCompareExchangePointer((volatile PVOID *)&Pointer, Exchange, Comparand); }
-void *Y_AtomicExchangeVoidPointer(volatile void *&Pointer, void *Exchange) { return InterlockedExchangePointer((volatile PVOID *)&Pointer, Exchange); }
+void *Y_AtomicCompareExchangeVoidPointer(void *volatile &Pointer, void *Exchange, void *Comparand) { return InterlockedCompareExchangePointer(&Pointer, Exchange, Comparand); }
+void *Y_AtomicExchangeVoidPointer(void *volatile &Pointer, void *Exchange) { return InterlockedExchangePointer(&Pointer, Exchange); }
 
 #elif defined(Y_COMPILER_GCC) || defined(Y_COMPILER_CLANG) || defined(Y_COMPILER_EMSCRIPTEN)
 
@@ -96,8 +96,8 @@ template<> uint64 Y_AtomicAnd(volatile uint64 &Value, uint64 AndVal) { return __
 #endif
 
 // pointers
-void *Y_AtomicCompareExchangeVoidPointer(volatile void *&Pointer, void *Exchange, void *Comparand) { return (void *)(__sync_val_compare_and_swap(&Pointer, Comparand, Exchange)); }
-void *Y_AtomicExchangeVoidPointer(volatile void *&Pointer, void *Exchange) { __sync_synchronize(); Pointer = Exchange; __sync_synchronize(); return Exchange; }
+void *Y_AtomicCompareExchangeVoidPointer(void *volatile &Pointer, void *Exchange, void *Comparand) { return (void *)(__sync_val_compare_and_swap(&Pointer, Comparand, Exchange)); }
+void *Y_AtomicExchangeVoidPointer(void *volatile &Pointer, void *Exchange) { __sync_synchronize(); Pointer = Exchange; __sync_synchronize(); return Exchange; }
 
 #else
 
