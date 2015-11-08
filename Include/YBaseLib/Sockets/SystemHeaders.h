@@ -9,5 +9,14 @@
     #include <sys/socket.h>
     #include <sys/types.h>
     #include <sys/uio.h>
+    #include <sys/ioctl.h>
+    #include <netinet/in.h>
+    #include <arpa/inet.h>
+    #include <errno.h>
+    #include <unistd.h>
+
+    typedef int SOCKET;
+    #define SOCKET_ERROR -1
+    #define INVALID_SOCKET -1
 #endif
 
