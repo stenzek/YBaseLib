@@ -62,7 +62,7 @@ public:
     // Wrapper to assist with queueing lambda callbacks
     template<class T> void QueueLambdaTask(const T &lambda)
     {
-        if (m_taskQueueSize == 0)
+        if (m_taskQueueBuffer.GetBufferSize() == 0)
         {
             lambda();
             return;
