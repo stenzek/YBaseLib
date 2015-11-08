@@ -24,7 +24,9 @@
     #include <intrin.h>
     #define CALL_CPUID(in, out) __cpuid((int *)out, in)
 #elif defined(Y_COMPILER_GCC) || defined(Y_COMPILER_CLANG)
-    #define CALL_CPUID(in, out) asm volatile ( "cpuid" : "=a"(*(out + 0)), "=b"(*(out + 1)), "=c"(*(out + 2)), "=d"(*(out + 3)) : "a"(in) )
+    //#define CALL_CPUID(in, out) asm volatile ( "cpuid" : "=a"(*(out + 0)), "=b"(*(out + 1)), "=c"(*(out + 2)), "=d"(*(out + 3)) : "a"(in) )
+    #include <cpuid.h>
+    #define CALL_CPUID(in, out) __get_cpuid(in, &out[0], &out[1], &out[2], &out[3])
 #endif
 
 #define CheckBit(val, bit) (((((val) & (1 << (bit))) != 0) ? 1 : 0) != 0)

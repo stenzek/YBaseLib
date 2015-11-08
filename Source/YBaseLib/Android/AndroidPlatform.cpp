@@ -69,4 +69,9 @@ size_t Platform::GetProgramMemoryUsage()
     return 0;
 }
 
+bool Platform::InitializeSocketSupport(Error *pError)
+{
+    return true;
+}
+
 #endif          // Y_PLATFORM_ANDROID
