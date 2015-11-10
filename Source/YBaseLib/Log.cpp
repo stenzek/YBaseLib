@@ -309,7 +309,10 @@ void Log::Writef(const char *channelName, const char *functionName, LOGLEVEL lev
 
 void Log::Writev(const char *channelName, const char *functionName, LOGLEVEL level, const char *format, va_list ap)
 {
-    uint32 requiredSize = Y_vscprintf(format, ap);
+    va_list apCopy;
+    va_copy(apCopy, ap);
+
+    uint32 requiredSize = Y_vscprintf(format, apCopy);
     if (requiredSize < 512)
     {
         char buffer[512];
