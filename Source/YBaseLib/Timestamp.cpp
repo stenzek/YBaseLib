@@ -6,10 +6,6 @@
 static void UnixTimeToSystemTime(time_t t, LPSYSTEMTIME pst);
 static time_t SystemTimeToUnixTime(const SYSTEMTIME *pst);
 
-#elif defined(Y_PLATFORM_POSIX)
-
-#include <sys/time.h>
-
 #endif
 
 Timestamp::Timestamp()
@@ -23,7 +19,7 @@ Timestamp::Timestamp()
     m_value.wMinute = 0;
     m_value.wSecond = 0;
     m_value.wMilliseconds = 0;
-#elif defined(Y_PLATFORM_POSIX) || defined(Y_PLATFORM_HTML5)
+#elif defined(Y_PLATFORM_POSIX) || defined(Y_PLATFORM_HTML5) || defined(Y_PLATFORM_ANDROID)
     m_value.tv_sec = 0;
     m_value.tv_usec = 0;
 #endif
@@ -33,7 +29,7 @@ Timestamp::Timestamp(const Timestamp &copy)
 {
 #if defined(Y_PLATFORM_WINDOWS)
     Y_memcpy(&m_value, &copy.m_value, sizeof(m_value));
-#elif defined(Y_PLATFORM_POSIX)
+#elif defined(Y_PLATFORM_POSIX) || defined(Y_PLATFORM_HTML5) || defined(Y_PLATFORM_ANDROID)
     Y_memcpy(&m_value, &copy.m_value, sizeof(m_value));
 #endif
 }
@@ -50,7 +46,7 @@ double Timestamp::DifferenceInSeconds(Timestamp &other) const
     int64 diff = ((int64)lval - (int64)rval);
     return double(diff / 10000000ULL) + (double(diff % 10000000ULL) / 10000000.0);
 
-#elif defined(Y_PLATFORM_POSIX) || defined(Y_PLATFORM_HTML5)
+#elif defined(Y_PLATFORM_POSIX) || defined(Y_PLATFORM_HTML5) || defined(Y_PLATFORM_ANDROID)
     return (double)(m_value.tv_sec - other.m_value.tv_sec) +
            (((double)(m_value.tv_usec - other.m_value.tv_usec)) / 1000000.0);
 #endif
@@ -68,7 +64,7 @@ int64 Timestamp::DifferenceInSecondsInt(Timestamp &other) const
     int64 diff = ((int64)lval - (int64)rval);
     return diff / 10000000ULL;
 
-#elif defined(Y_PLATFORM_POSIX) || defined(Y_PLATFORM_HTML5)
+#elif defined(Y_PLATFORM_POSIX) || defined(Y_PLATFORM_HTML5) || defined(Y_PLATFORM_ANDROID)
     return (int64)(m_value.tv_sec - other.m_value.tv_sec);
 #endif
 }
@@ -77,7 +73,7 @@ Timestamp::UnixTimestampValue Timestamp::AsUnixTimestamp() const
 {
 #if defined(Y_PLATFORM_WINDOWS)
     return (UnixTimestampValue)SystemTimeToUnixTime(&m_value);
-#elif defined(Y_PLATFORM_POSIX) || defined(Y_PLATFORM_HTML5)
+#elif defined(Y_PLATFORM_POSIX) || defined(Y_PLATFORM_HTML5) || defined(Y_PLATFORM_ANDROID)
     return (UnixTimestampValue)m_value.tv_sec;
 #endif
 }
@@ -95,7 +91,7 @@ Timestamp::ExpandedTime Timestamp::AsExpandedTime() const
     et.Minute = m_value.wMinute;
     et.Second = m_value.wSecond;
     et.Milliseconds = m_value.wMilliseconds;
-#elif defined(Y_PLATFORM_POSIX) || defined(Y_PLATFORM_HTML5)
+#elif defined(Y_PLATFORM_POSIX) || defined(Y_PLATFORM_HTML5) || defined(Y_PLATFORM_ANDROID)
     struct tm t;
     time_t unixTime = (time_t)m_value.tv_sec;
     gmtime_r(&unixTime, &t);
@@ -116,7 +112,7 @@ void Timestamp::SetNow()
 {
 #if defined(Y_PLATFORM_WINDOWS)
     GetSystemTime(&m_value);
-#elif defined(Y_PLATFORM_POSIX) || defined(Y_PLATFORM_HTML5)
+#elif defined(Y_PLATFORM_POSIX) || defined(Y_PLATFORM_HTML5) || defined(Y_PLATFORM_ANDROID)
     gettimeofday(&m_value, NULL);
 #endif
 }
@@ -125,7 +121,7 @@ void Timestamp::SetUnixTimestamp(UnixTimestampValue value)
 {
 #if defined(Y_PLATFORM_WINDOWS)
     UnixTimeToSystemTime((time_t)value, &m_value);
-#elif defined(Y_PLATFORM_POSIX) || defined(Y_PLATFORM_HTML5)
+#elif defined(Y_PLATFORM_POSIX) || defined(Y_PLATFORM_HTML5) || defined(Y_PLATFORM_ANDROID)
     m_value.tv_sec = (time_t)value;
     m_value.tv_usec = 0;
 #endif
@@ -147,13 +143,13 @@ void Timestamp::SetExpandedTime(const ExpandedTime &value)
     FILETIME ft;
     SystemTimeToFileTime(&st, &ft);
     FileTimeToSystemTime(&ft, &m_value);
-#elif defined(Y_PLATFORM_POSIX) || defined(Y_PLATFORM_HTML5)
+#elif defined(Y_PLATFORM_POSIX) || defined(Y_PLATFORM_HTML5) || defined(Y_PLATFORM_ANDROID)
     struct tm t;
     Y_memzero(&t, sizeof(t));
     t.tm_sec = value.Second;
     t.tm_min = value.Minute;
     t.tm_hour = value.Hour;
-    t.tm_mday = value.Day;
+    t.tm_mday = value.DayOfMonth;
     t.tm_mon = value.Month - 1;
     t.tm_year = value.Year - 1900;
     time_t unixTime = mktime(&t);
@@ -212,7 +208,7 @@ bool Timestamp::operator==(const Timestamp &other) const
 {
 #if defined(Y_PLATFORM_WINDOWS)
     return Y_memcmp(&m_value, &other.m_value, sizeof(m_value)) == 0;
-#elif defined(Y_PLATFORM_POSIX) || defined(Y_PLATFORM_HTML5)
+#elif defined(Y_PLATFORM_POSIX) || defined(Y_PLATFORM_HTML5) || defined(Y_PLATFORM_ANDROID)
     return Y_memcmp(&m_value, &other.m_value, sizeof(m_value)) == 0;
 #endif
 }
@@ -221,7 +217,7 @@ bool Timestamp::operator!=(const Timestamp &other) const
 {
 #if defined(Y_PLATFORM_WINDOWS)
     return Y_memcmp(&m_value, &other.m_value, sizeof(m_value)) != 0;
-#elif defined(Y_PLATFORM_POSIX) || defined(Y_PLATFORM_HTML5)
+#elif defined(Y_PLATFORM_POSIX) || defined(Y_PLATFORM_HTML5) || defined(Y_PLATFORM_ANDROID)
     return Y_memcmp(&m_value, &other.m_value, sizeof(m_value)) != 0;
 #endif
 }
@@ -267,7 +263,7 @@ bool Timestamp::operator<(const Timestamp &other) const
 
     return false;
 
-#elif defined(Y_PLATFORM_POSIX) || defined(Y_PLATFORM_HTML5)
+#elif defined(Y_PLATFORM_POSIX) || defined(Y_PLATFORM_HTML5) || defined(Y_PLATFORM_ANDROID)
     
     if (m_value.tv_sec > other.m_value.tv_sec)
         return false;
@@ -325,7 +321,7 @@ bool Timestamp::operator<=(const Timestamp &other) const
 
     return false;
 
-#elif defined(Y_PLATFORM_POSIX) || defined(Y_PLATFORM_HTML5)
+#elif defined(Y_PLATFORM_POSIX) || defined(Y_PLATFORM_HTML5) || defined(Y_PLATFORM_ANDROID)
 
     if (m_value.tv_sec > other.m_value.tv_sec)
         return false;
@@ -383,7 +379,7 @@ bool Timestamp::operator>(const Timestamp &other) const
 
     return false;
 
-#elif defined(Y_PLATFORM_POSIX) || defined(Y_PLATFORM_HTML5)
+#elif defined(Y_PLATFORM_POSIX) || defined(Y_PLATFORM_HTML5) || defined(Y_PLATFORM_ANDROID)
     
     if (m_value.tv_sec < other.m_value.tv_sec)
         return false;
@@ -441,7 +437,7 @@ bool Timestamp::operator>=(const Timestamp &other) const
 
     return false;
 
-#elif defined(Y_PLATFORM_POSIX) || defined(Y_PLATFORM_HTML5)
+#elif defined(Y_PLATFORM_POSIX) || defined(Y_PLATFORM_HTML5) || defined(Y_PLATFORM_ANDROID)
 
     if (m_value.tv_sec < other.m_value.tv_sec)
         return false;
@@ -462,7 +458,7 @@ Timestamp &Timestamp::operator=(const Timestamp &other)
 {
 #if defined(Y_PLATFORM_WINDOWS)
     Y_memcpy(&m_value, &other.m_value, sizeof(m_value));
-#elif defined(Y_PLATFORM_POSIX) || defined(Y_PLATFORM_HTML5)
+#elif defined(Y_PLATFORM_POSIX) || defined(Y_PLATFORM_HTML5) || defined(Y_PLATFORM_ANDROID)
     Y_memcpy(&m_value, &other.m_value, sizeof(m_value));
 #endif
 

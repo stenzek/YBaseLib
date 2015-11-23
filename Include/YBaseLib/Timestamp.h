@@ -4,7 +4,7 @@
 
 #if defined(Y_PLATFORM_WINDOWS)
     #include "YBaseLib/Windows/WindowsHeaders.h"
-#elif defined(Y_PLATFORM_POSIX) || defined(Y_PLATFORM_HTML5)
+#elif defined(Y_PLATFORM_POSIX) || defined(Y_PLATFORM_HTML5) || defined(Y_PLATFORM_ANDROID)
     #include <sys/time.h>
 #endif
 
@@ -69,7 +69,7 @@ public:
 private:
 #if defined(Y_PLATFORM_WINDOWS)
     SYSTEMTIME m_value;
-#elif defined(Y_PLATFORM_POSIX) || defined(Y_PLATFORM_HTML5)
+#elif defined(Y_PLATFORM_POSIX) || defined(Y_PLATFORM_HTML5) || defined(Y_PLATFORM_ANDROID)
     struct timeval m_value;
 #endif
 };

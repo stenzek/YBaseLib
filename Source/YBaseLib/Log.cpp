@@ -167,8 +167,8 @@ static void ConsoleOutputLogCallback(void *pUserParam, const char *channelName, 
     write(outputFd, colorCodes[level], Y_strlen(colorCodes[level]));
 
     Log::FormatLogMessageForDisplay(channelName, functionName, level, message, [](const char *text, void *outputFd) {
-        write((int)outputFd, text, Y_strlen(text));
-    }, (void *)outputFd);
+        write((int)(intptr_t)outputFd, text, Y_strlen(text));
+    }, (void *)(intptr_t)outputFd);
 
     write(outputFd, colorCodes[0], Y_strlen(colorCodes[0]));
     write(outputFd, "\n", 1);
