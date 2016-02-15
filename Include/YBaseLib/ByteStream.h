@@ -77,6 +77,28 @@ protected:
     DeclareNonCopyable(ByteStream);
 };
 
+class NullByteStream : public ByteStream
+{
+public:
+    NullByteStream();
+    ~NullByteStream();
+
+    virtual bool ReadByte(byte *pDestByte) override final;
+    virtual uint32 Read(void *pDestination, uint32 ByteCount) override final;
+    virtual bool Read2(void *pDestination, uint32 ByteCount, uint32 *pNumberOfBytesRead /* = nullptr */) override final;
+    virtual bool WriteByte(byte SourceByte) override final;
+    virtual uint32 Write(const void *pSource, uint32 ByteCount) override final;
+    virtual bool Write2(const void *pSource, uint32 ByteCount, uint32 *pNumberOfBytesWritten /* = nullptr */) override final;
+    virtual bool SeekAbsolute(uint64 Offset) override final;
+    virtual bool SeekRelative(int64 Offset) override final;
+    virtual bool SeekToEnd() override final;
+    virtual uint64 GetSize() const override final;
+    virtual uint64 GetPosition() const override final;
+    virtual bool Flush() override final;
+    virtual bool Commit() override final;
+    virtual bool Discard() override final;
+};
+
 class MemoryByteStream : public ByteStream
 {
 public:
@@ -186,6 +208,9 @@ GrowableMemoryByteStream *ByteStream_CreateGrowableMemoryStream();
 
 // readable memory stream
 ReadOnlyMemoryByteStream *ByteStream_CreateReadOnlyMemoryStream(const void *pMemory, uint32 Size);
+
+// null memory stream
+NullByteStream* ByteStream_CreateNullStream();
 
 // copies one stream's contents to another. rewinds source streams automatically, and returns it back to its old position.
 bool ByteStream_CopyStream(ByteStream *pDestinationStream, ByteStream *pSourceStream);

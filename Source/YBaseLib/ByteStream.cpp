@@ -362,6 +362,97 @@ private:
     String m_temporaryFileName;
 };
 
+
+NullByteStream::NullByteStream()
+{
+
+}
+
+NullByteStream::~NullByteStream()
+{
+
+}
+
+bool NullByteStream::ReadByte(byte *pDestByte)
+{
+    *pDestByte = 0;
+    return true;
+}
+
+uint32 NullByteStream::Read(void *pDestination, uint32 ByteCount)
+{
+    if (ByteCount > 0)
+        Y_memzero(pDestination, ByteCount);
+
+    return ByteCount;
+}
+
+bool NullByteStream::Read2(void *pDestination, uint32 ByteCount, uint32 *pNumberOfBytesRead /* = nullptr */)
+{
+    if (ByteCount > 0)
+        Y_memzero(pDestination, ByteCount);
+
+    if (pNumberOfBytesRead)
+        *pNumberOfBytesRead = ByteCount;
+
+    return true;
+}
+
+bool NullByteStream::WriteByte(byte SourceByte)
+{
+    return true;
+}
+
+uint32 NullByteStream::Write(const void *pSource, uint32 ByteCount)
+{
+    return ByteCount;
+}
+
+bool NullByteStream::Write2(const void *pSource, uint32 ByteCount, uint32 *pNumberOfBytesWritten /* = nullptr */)
+{
+    return true;
+}
+
+bool NullByteStream::SeekAbsolute(uint64 Offset)
+{
+    return true;
+}
+
+bool NullByteStream::SeekRelative(int64 Offset)
+{
+    return true;
+}
+
+bool NullByteStream::SeekToEnd()
+{
+    return true;
+}
+
+uint64 NullByteStream::GetSize() const
+{
+    return 0;
+}
+
+uint64 NullByteStream::GetPosition() const
+{
+    return 0;
+}
+
+bool NullByteStream::Flush()
+{
+    return true;
+}
+
+bool NullByteStream::Commit()
+{
+    return true;
+}
+
+bool NullByteStream::Discard()
+{
+    return true;
+}
+
 MemoryByteStream::MemoryByteStream(void *pMemory, uint32 MemSize)
 {
     m_iPosition = 0;
@@ -1171,6 +1262,11 @@ ReadOnlyMemoryByteStream *ByteStream_CreateReadOnlyMemoryStream(const void *pMem
 {
     DebugAssert(pMemory != nullptr && Size > 0);
     return new ReadOnlyMemoryByteStream(pMemory, Size);
+}
+
+NullByteStream* ByteStream_CreateNullStream()
+{
+    return new NullByteStream();
 }
 
 GrowableMemoryByteStream *ByteStream_CreateGrowableMemoryStream(void *pInitialMemory, uint32 InitialSize)
