@@ -77,7 +77,7 @@ void SocketAddress::ToString(String &destination) const
         {
             destination.Clear();
             destination.Reserve(128);
-            const char *res = inet_ntop(AF_INET, m_data, destination.GetWriteableCharArray(), destination.GetWritableBufferSize());
+            const char *res = inet_ntop(AF_INET, const_cast<byte *>(m_data), destination.GetWriteableCharArray(), destination.GetWritableBufferSize());
             if (res == nullptr)
             {
                 destination.Clear();
@@ -93,7 +93,7 @@ void SocketAddress::ToString(String &destination) const
             destination.Clear();
             destination.Reserve(128);
             destination.AppendCharacter('[');
-            const char *res = inet_ntop(AF_INET, m_data, destination.GetWriteableCharArray() + 1, destination.GetWritableBufferSize() - 1);
+            const char *res = inet_ntop(AF_INET, const_cast<byte *>(m_data), destination.GetWriteableCharArray() + 1, destination.GetWritableBufferSize() - 1);
             if (res == nullptr)
             {
                 destination.Clear();
