@@ -24,6 +24,10 @@ private:
     ReferenceCounted &operator=(const ReferenceCounted &);
 };
 
+// Helper method to add/release a reference and return the same pointer
+template<class T> T AddRefAndReturn(T pPointer) { pPointer->AddRef(); return pPointer; }
+template<class T> T ReleaseReferenceAndReturn(T pPointer) { pPointer->Release(); return pPointer; }
+
 #define SAFE_RELEASE(x) MULTI_STATEMENT_MACRO_BEGIN \
                             if ((x) != nullptr) { (x)->Release(); (x) = nullptr; } \
                         MULTI_STATEMENT_MACRO_END
