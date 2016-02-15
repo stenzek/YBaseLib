@@ -504,6 +504,30 @@ bool Y_bitscanforward(uint64 mask, uint32 *index)
 #endif
 }
 
+bool Y_bitscanreverse(uint32 mask, uint32 *index)
+{
+    // unsigned long is 32bit on x86+x64, so this cast is okay
+    return (_BitScanReverse((unsigned long *)index, mask) != 0);
+}
+
+bool Y_bitscanreverse(uint64 mask, uint32 *index)
+{
+#ifdef Y_CPU_X64
+    return (_BitScanReverse64((unsigned long *)index, mask) != 0);
+#else
+    if (_BitScanReverse((unsigned long *)index, (uint32)mask))
+        return true;
+
+    if (_BitScanReverse((unsigned long *)index, (uint32)(mask >> 32)))
+    {
+        *index += 32;
+        return true;
+    }
+
+    return false;
+#endif
+}
+
 #elif defined(Y_COMPILER_GCC) || defined(Y_COMPILER_CLANG) || defined(Y_COMPILER_EMSCRIPTEN)
 
 bool Y_bitscanforward(uint32 mask, uint32 *index)
@@ -514,7 +538,6 @@ bool Y_bitscanforward(uint32 mask, uint32 *index)
     *index = __builtin_clz(mask);
     return true;
 }
-
 
 bool Y_bitscanforward(uint64 mask, uint32 *index)
 {
@@ -533,6 +556,38 @@ bool Y_bitscanforward(uint64 mask, uint32 *index)
     else if ((uint32)(mask >> 32) != 0)
     {
         *index = __builtin_clz((uint32)(mask >> 32)) + 32;
+        return true;
+    }
+    return false;
+#endif
+}
+
+bool Y_bitscanreverse(uint32 mask, uint32 *index)
+{
+    if (mask == 0)
+        return false;
+
+    *index = __builtin_ctz(mask);
+    return true;
+}
+
+bool Y_bitscanforward(uint64 mask, uint32 *index)
+{
+#ifdef Y_CPU_X64
+    if (mask == 0)
+        return false;
+
+    *index = __builtin_ctz(mask);
+    return true;
+#else
+    if ((uint32)mask != 0)
+    {
+        *index = __builtin_ctz((uint32)mask);
+        return true;
+    }
+    else if ((uint32)(mask >> 32) != 0)
+    {
+        *index = __builtin_ctz((uint32)(mask >> 32)) + 32;
         return true;
     }
     return false;
