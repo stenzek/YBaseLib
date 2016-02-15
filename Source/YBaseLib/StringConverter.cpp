@@ -207,23 +207,27 @@ void StringConverter::BytesToHexString(String &Destination, const void *pData, u
     Y_makehexstring(pData, cbData, Destination.GetWriteableCharArray(), cbData * 2 + 1);
 }
 
-void StringConverter::StreamToString(String &Destination, ByteStream *pStream, uint32 Length)
+bool StringConverter::StreamToString(String &Destination, ByteStream *pStream)
 {
     uint32 streamLength = static_cast<uint32>(pStream->GetSize());
     Destination.Resize(streamLength);
     if (streamLength > 0)
-        pStream->Read2(Destination.GetWriteableCharArray(), streamLength);
+        return pStream->Read2(Destination.GetWriteableCharArray(), streamLength);
+
+    return true;
 }
 
-void StringConverter::AppendStreamToString(String &Destination, ByteStream *pStream, uint32 Length)
+bool StringConverter::AppendStreamToString(String &Destination, ByteStream *pStream)
 {
     uint32 streamLength = static_cast<uint32>(pStream->GetSize());
     if (streamLength > 0)
     {
         uint32 currentLength = Destination.GetLength();
         Destination.Resize(currentLength + streamLength);
-        pStream->Read2(Destination.GetWriteableCharArray() + currentLength, streamLength);
+        return pStream->Read2(Destination.GetWriteableCharArray() + currentLength, streamLength);
     }
+
+    return true;
 }
 
 void StringConverter::SizeToHumanReadableString(String &Destination, uint64 nBytes)
@@ -337,10 +341,10 @@ String StringConverter::BytesToHexString(const void *pData, uint32 cbData)
     return ret;
 }
 
-String StringConverter::StreamToString(ByteStream *pStream, uint32 Length)
+String StringConverter::StreamToString(ByteStream *pStream)
 {
     String ret;
-    StreamToString(ret, pStream, Length);
+    StreamToString(ret, pStream);
     return ret;
 }
 

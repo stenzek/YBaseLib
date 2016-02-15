@@ -37,8 +37,8 @@ namespace StringConverter
     void DoubleToString(String &Destination, const double Value);
     void ColorToString(String &Destination, const uint32 Value);
     void BytesToHexString(String &Destination, const void *pData, uint32 cbData);
-    void StreamToString(String &Destination, ByteStream *pStream, uint32 Length);
-    void AppendStreamToString(String &Destination, ByteStream *pStream, uint32 Length);
+    bool StreamToString(String &Destination, ByteStream *pStream);
+    bool AppendStreamToString(String &Destination, ByteStream *pStream);
     void SizeToHumanReadableString(String &Destination, uint64 nBytes);
 
     TinyString BoolToString(const bool Value);
@@ -54,7 +54,7 @@ namespace StringConverter
     TinyString DoubleToString(const double Value);
     TinyString ColorToString(const uint32 Value);
     String BytesToHexString(const void *pData, uint32 cbData);
-    String StreamToString(ByteStream *pStream, uint32 Length);
+    String StreamToString(ByteStream *pStream);
     TinyString SizeToHumanReadableString(uint64 nBytes);
 }
 
