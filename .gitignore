@@ -6,4 +6,4 @@ ipch/*
 *.opensdf
 *.sdf
 *.suo
-Tests
+*.VC.opendb
