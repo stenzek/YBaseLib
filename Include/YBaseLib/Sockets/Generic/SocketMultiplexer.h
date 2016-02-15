@@ -71,11 +71,11 @@ private:
     void RemoveOpenSocket(BaseSocket *pSocket);
 
     // Register for notifications
-    void SetNotificationMask(BaseSocket *pSocket, int fileDescriptor, uint32 mask);
+    void SetNotificationMask(BaseSocket *pSocket, SOCKET fileDescriptor, uint32 mask);
 
 private:
     // We store the fd in the struct to avoid the cache miss reading the object.
-    struct BoundSocket { BaseSocket *pSocket; uint32 EventMask; int FileDescriptor; };
+    struct BoundSocket { BaseSocket *pSocket; uint32 EventMask; SOCKET FileDescriptor; };
     MemArray<BoundSocket> m_boundSockets;
     Mutex m_boundSocketLock;
 

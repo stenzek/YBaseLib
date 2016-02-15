@@ -15,7 +15,7 @@ Log_SetChannel(StreamSocket);
     #define WSAGetLastError() errno
 #endif
 
-ListenSocket::ListenSocket(SocketMultiplexer *pMultiplexer, SocketMultiplexer::CreateStreamSocketCallback acceptCallback, int fileDescriptor)
+ListenSocket::ListenSocket(SocketMultiplexer *pMultiplexer, SocketMultiplexer::CreateStreamSocketCallback acceptCallback, SOCKET fileDescriptor)
     : m_pMultiplexer(pMultiplexer)
     , m_acceptCallback(acceptCallback)
     , m_numConnectionsAccepted(0)
@@ -49,7 +49,7 @@ void ListenSocket::Close()
     m_pMultiplexer->SetNotificationMask(this, m_fileDescriptor, 0);
     m_pMultiplexer->RemoveOpenSocket(this);
     closesocket(m_fileDescriptor);
-    m_fileDescriptor = -1;
+    m_fileDescriptor = INVALID_SOCKET;
 }
 
 void ListenSocket::OnReadEvent()

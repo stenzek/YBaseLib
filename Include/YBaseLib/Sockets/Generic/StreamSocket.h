@@ -37,7 +37,7 @@ private:
     virtual void OnReadEvent() override;
     virtual void OnWriteEvent() override;
 
-    bool InitializeSocket(SocketMultiplexer *pMultiplexer, int fileDescriptor, Error *pError);
+    bool InitializeSocket(SocketMultiplexer *pMultiplexer, SOCKET fileDescriptor, Error *pError);
     void CloseWithError();
 
 private:
@@ -45,7 +45,7 @@ private:
     SocketAddress m_localAddress;
     SocketAddress m_remoteAddress;
     RecursiveMutex m_lock;
-    int m_fileDescriptor;
+    SOCKET m_fileDescriptor;
     bool m_connected;
 
     // Ugly, but needed in order to call the events.

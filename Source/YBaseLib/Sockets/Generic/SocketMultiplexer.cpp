@@ -123,7 +123,7 @@ ListenSocket *SocketMultiplexer::InternalCreateListenSocket(const SocketAddress 
 StreamSocket *SocketMultiplexer::InternalConnectStreamSocket(const SocketAddress *pAddress, CreateStreamSocketCallback callback, Error *pError)
 {
     // create and bind socket
-    int fileDescriptor = -1;
+    SOCKET fileDescriptor = INVALID_SOCKET;
     switch (pAddress->GetType())
     {
     case SocketAddress::Type_IPv4:
@@ -254,7 +254,7 @@ void SocketMultiplexer::CloseAll()
     }
 }
 
-void SocketMultiplexer::SetNotificationMask(BaseSocket *pSocket, int fileDescriptor, uint32 mask)
+void SocketMultiplexer::SetNotificationMask(BaseSocket *pSocket, SOCKET fileDescriptor, uint32 mask)
 {
     m_boundSocketLock.Lock();
 
@@ -294,7 +294,7 @@ void SocketMultiplexer::PollEvents(uint32 milliseconds)
 {
     fd_set readFds;
     fd_set writeFds;
-    int maxFileDescriptor = -1;
+    SOCKET maxFileDescriptor = 0;
     uint32 setCount = 0;
 
     // loop until we get some sockets
@@ -337,7 +337,7 @@ void SocketMultiplexer::PollEvents(uint32 milliseconds)
     timeval tv;
     tv.tv_sec = milliseconds / 1000;
     tv.tv_usec = (milliseconds % 1000) * 1000;
-    int result = select(maxFileDescriptor + 1, &readFds, &writeFds, nullptr, (milliseconds != Y_UINT32_MAX) ? &tv : nullptr);
+    int result = select((int)maxFileDescriptor + 1, &readFds, &writeFds, nullptr, (milliseconds != Y_UINT32_MAX) ? &tv : nullptr);
     if (result <= 0)
         return;
 

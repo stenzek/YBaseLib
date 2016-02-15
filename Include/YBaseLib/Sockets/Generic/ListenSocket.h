@@ -12,7 +12,7 @@ class ListenSocket : public BaseSocket
     friend SocketMultiplexer;
 
 public:
-    ListenSocket(SocketMultiplexer *pMultiplexer, SocketMultiplexer::CreateStreamSocketCallback acceptCallback, int fileDescriptor);
+    ListenSocket(SocketMultiplexer *pMultiplexer, SocketMultiplexer::CreateStreamSocketCallback acceptCallback, SOCKET fileDescriptor);
     virtual ~ListenSocket();
 
     const SocketAddress *GetLocalAddress() const { return &m_localAddress; }
@@ -29,7 +29,7 @@ private:
     SocketMultiplexer::CreateStreamSocketCallback m_acceptCallback;
     SocketAddress m_localAddress;
     uint32 m_numConnectionsAccepted;
-    int m_fileDescriptor;
+    SOCKET m_fileDescriptor;
 };
 
 #endif      // Y_SOCKET_IMPLEMENTATION_GENERIC

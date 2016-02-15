@@ -12,12 +12,15 @@ Log_SetChannel(StreamSocket);
     #define closesocket close
     #define WSAEWOULDBLOCK EAGAIN
     #define WSAGetLastError() errno
+    #define SIZE_CAST(x) x
+#else
+    #define SIZE_CAST(x) static_cast<int>(x)
 #endif
 
 StreamSocket::StreamSocket()
     : BaseSocket()
     , m_pMultiplexer(nullptr)
-    , m_fileDescriptor(-1)
+    , m_fileDescriptor(INVALID_SOCKET)
     , m_connected(false)
 {
 
@@ -35,7 +38,7 @@ size_t StreamSocket::Read(void *pBuffer, size_t bufferSize)
         return 0;
 
     // try a read
-    ssize_t len = recv(m_fileDescriptor, (char *)pBuffer, bufferSize, 0);
+    ssize_t len = recv(m_fileDescriptor, (char *)pBuffer, SIZE_CAST(bufferSize), 0);
     if (len <= 0)
     {
         // Check for EAGAIN
@@ -67,7 +70,7 @@ size_t StreamSocket::Write(const void *pBuffer, size_t bufferLength)
     }
 
     // try a write
-    ssize_t len = send(m_fileDescriptor, (const char *)pBuffer, bufferLength, 0);
+    ssize_t len = send(m_fileDescriptor, (const char *)pBuffer, SIZE_CAST(bufferLength), 0);
     if (len <= 0)
     {
         // Check for EAGAIN
@@ -163,7 +166,7 @@ void StreamSocket::Close()
 
     m_pMultiplexer->SetNotificationMask(this, m_fileDescriptor, 0);
     closesocket(m_fileDescriptor);
-    m_fileDescriptor = -1;
+    m_fileDescriptor = INVALID_SOCKET;
     m_connected = false;
 
     Error error;
@@ -188,7 +191,7 @@ void StreamSocket::CloseWithError()
 
     m_pMultiplexer->SetNotificationMask(this, m_fileDescriptor, 0);
     closesocket(m_fileDescriptor);
-    m_fileDescriptor = -1;
+    m_fileDescriptor = INVALID_SOCKET;
     m_connected = false;
 
     OnDisconnected(&error);
@@ -230,7 +233,7 @@ void StreamSocket::OnWriteEvent()
     // shouldn't be called
 }
 
-bool StreamSocket::InitializeSocket(SocketMultiplexer *pMultiplexer, int fileDescriptor, Error *pError)
+bool StreamSocket::InitializeSocket(SocketMultiplexer *pMultiplexer, SOCKET fileDescriptor, Error *pError)
 {
     DebugAssert(m_pMultiplexer == nullptr);
     m_pMultiplexer = pMultiplexer;

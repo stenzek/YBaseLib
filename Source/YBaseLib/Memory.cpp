@@ -489,7 +489,7 @@ bool Y_bitscanforward(uint32 mask, uint32 *index)
 bool Y_bitscanforward(uint64 mask, uint32 *index)
 {
 #ifdef Y_CPU_X64
-    return _BitScanForward64((unsigned long *)index, mask);
+    return (_BitScanForward64((unsigned long *)index, mask) != 0);
 #else
     if (_BitScanForward((unsigned long *)index, (uint32)mask))
         return true;
