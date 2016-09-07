@@ -73,18 +73,25 @@ extern Log *g_pLog;
 // log wrappers
 #define Log_SetChannel(ChannelName) static const char *___LogChannel___ = #ChannelName;
 #define Log_ErrorPrint(msg) Log::GetInstance().Write(___LogChannel___, LOG_MESSAGE_FUNCTION_NAME, LOGLEVEL_ERROR, msg)
-#define Log_WarningPrint(msg) Log::GetInstance().Write(___LogChannel___, LOG_MESSAGE_FUNCTION_NAME, LOGLEVEL_WARNING, msg)
-#define Log_SuccessPrint(msg) Log::GetInstance().Write(___LogChannel___, LOG_MESSAGE_FUNCTION_NAME, LOGLEVEL_SUCCESS, msg)
-#define Log_InfoPrint(msg) Log::GetInstance().Write(___LogChannel___, LOG_MESSAGE_FUNCTION_NAME, LOGLEVEL_INFO, msg)
-#define Log_PerfPrint(msg) Log::GetInstance().Write(___LogChannel___, LOG_MESSAGE_FUNCTION_NAME, LOGLEVEL_PERF, msg)
-#define Log_DevPrint(msg) Log::GetInstance().Write(___LogChannel___, LOG_MESSAGE_FUNCTION_NAME, LOGLEVEL_DEV, msg)
-#define Log_ProfilePrint(msg) Log::GetInstance().Write(___LogChannel___, LOG_MESSAGE_FUNCTION_NAME, LOGLEVEL_PROFILE, msg)
-#define Log_TracePrint(msg) Log::GetInstance().Write(___LogChannel___, LOG_MESSAGE_FUNCTION_NAME, LOGLEVEL_TRACE, msg)
 #define Log_ErrorPrintf(...) Log::GetInstance().Writef(___LogChannel___, LOG_MESSAGE_FUNCTION_NAME, LOGLEVEL_ERROR, __VA_ARGS__)
+#define Log_WarningPrint(msg) Log::GetInstance().Write(___LogChannel___, LOG_MESSAGE_FUNCTION_NAME, LOGLEVEL_WARNING, msg)
 #define Log_WarningPrintf(...) Log::GetInstance().Writef(___LogChannel___, LOG_MESSAGE_FUNCTION_NAME, LOGLEVEL_WARNING, __VA_ARGS__)
+#define Log_SuccessPrint(msg) Log::GetInstance().Write(___LogChannel___, LOG_MESSAGE_FUNCTION_NAME, LOGLEVEL_SUCCESS, msg)
 #define Log_SuccessPrintf(...) Log::GetInstance().Writef(___LogChannel___, LOG_MESSAGE_FUNCTION_NAME, LOGLEVEL_SUCCESS, __VA_ARGS__)
+#define Log_InfoPrint(msg) Log::GetInstance().Write(___LogChannel___, LOG_MESSAGE_FUNCTION_NAME, LOGLEVEL_INFO, msg)
 #define Log_InfoPrintf(...) Log::GetInstance().Writef(___LogChannel___, LOG_MESSAGE_FUNCTION_NAME, LOGLEVEL_INFO, __VA_ARGS__)
+#define Log_PerfPrint(msg) Log::GetInstance().Write(___LogChannel___, LOG_MESSAGE_FUNCTION_NAME, LOGLEVEL_PERF, msg)
 #define Log_PerfPrintf(...) Log::GetInstance().Writef(___LogChannel___, LOG_MESSAGE_FUNCTION_NAME, LOGLEVEL_PERF, __VA_ARGS__)
+#define Log_DevPrint(msg) Log::GetInstance().Write(___LogChannel___, LOG_MESSAGE_FUNCTION_NAME, LOGLEVEL_DEV, msg)
 #define Log_DevPrintf(...) Log::GetInstance().Writef(___LogChannel___, LOG_MESSAGE_FUNCTION_NAME, LOGLEVEL_DEV, __VA_ARGS__)
+#define Log_ProfilePrint(msg) Log::GetInstance().Write(___LogChannel___, LOG_MESSAGE_FUNCTION_NAME, LOGLEVEL_PROFILE, msg)
 #define Log_ProfilePrintf(...) Log::GetInstance().Writef(___LogChannel___, LOG_MESSAGE_FUNCTION_NAME, LOGLEVEL_PROFILE, __VA_ARGS__)
-#define Log_TracePrintf(...) Log::GetInstance().Writef(___LogChannel___, LOG_MESSAGE_FUNCTION_NAME, LOGLEVEL_TRACE, __VA_ARGS__)
+
+#ifdef Y_BUILD_CONFIG_RELEASE
+    #define Log_TracePrint(msg) MULTI_STATEMENT_MACRO_BEGIN MULTI_STATEMENT_MACRO_END
+    #define Log_TracePrintf(...) MULTI_STATEMENT_MACRO_BEGIN MULTI_STATEMENT_MACRO_END
+#else
+    #define Log_TracePrint(msg) Log::GetInstance().Write(___LogChannel___, LOG_MESSAGE_FUNCTION_NAME, LOGLEVEL_TRACE, msg)
+    #define Log_TracePrintf(...) Log::GetInstance().Writef(___LogChannel___, LOG_MESSAGE_FUNCTION_NAME, LOGLEVEL_TRACE, __VA_ARGS__)
+#endif
+
