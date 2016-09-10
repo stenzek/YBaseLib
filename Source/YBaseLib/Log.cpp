@@ -16,6 +16,7 @@ static Y_TIMER_VALUE s_startTimeStamp;
 Log::Log()
 {
     s_startTimeStamp = Y_TimerGetValue();
+    m_filterLevel = LOGLEVEL_TRACE;
 }
 
 Log::~Log()
@@ -284,6 +285,12 @@ void Log::SetDebugOutputParams(bool enabled, const char *channelFilter /* = null
     s_debugOutputLevelFilter = levelFilter;
 }
 
+void Log::SetFilterLevel(LOGLEVEL level)
+{
+    DebugAssert(level < LOGLEVEL_COUNT);
+    m_filterLevel = level;
+}
+
 void Log::ExecuteCallbacks(const char *channelName, const char *functionName, LOGLEVEL level, const char *message)
 {
     m_callbackLock.Lock();
@@ -296,11 +303,17 @@ void Log::ExecuteCallbacks(const char *channelName, const char *functionName, LO
 
 void Log::Write(const char *channelName, const char *functionName, LOGLEVEL level, const char *message)
 {
+    if (level > m_filterLevel)
+        return;
+
     ExecuteCallbacks(channelName, functionName, level, message);
 }
 
 void Log::Writef(const char *channelName, const char *functionName, LOGLEVEL level, const char *format, ...)
 {
+    if (level > m_filterLevel)
+        return;
+
     va_list ap;
     va_start(ap, format);
     Writev(channelName, functionName, level, format, ap);
@@ -309,6 +322,9 @@ void Log::Writef(const char *channelName, const char *functionName, LOGLEVEL lev
 
 void Log::Writev(const char *channelName, const char *functionName, LOGLEVEL level, const char *format, va_list ap)
 {
+    if (level > m_filterLevel)
+        return;
+
     va_list apCopy;
     va_copy(apCopy, ap);
 

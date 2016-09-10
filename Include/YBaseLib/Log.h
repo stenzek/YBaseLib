@@ -40,6 +40,9 @@ public:
     // adds a debug console output [win32/android only]
     void SetDebugOutputParams(bool enabled, const char *channelFilter = nullptr, LOGLEVEL levelFilter = LOGLEVEL_TRACE);
 
+    // Sets global filtering level, messages below this level won't be sent to any of the logging sinks.
+    void SetFilterLevel(LOGLEVEL level);
+
     // writes a message to the log
     void Write(const char *channelName, const char *functionName, LOGLEVEL level, const char *message);
     void Writef(const char *channelName, const char *functionName, LOGLEVEL level, const char *format, ...);
@@ -58,6 +61,8 @@ private:
     typedef MemArray<RegisteredCallback> RegisteredCallbackList;
     RegisteredCallbackList m_callbacks;
     Mutex m_callbackLock;
+
+    LOGLEVEL m_filterLevel;
 
     void ExecuteCallbacks(const char *channelName, const char *functionName, LOGLEVEL level, const char *message);
 };
