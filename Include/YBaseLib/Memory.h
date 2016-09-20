@@ -39,14 +39,14 @@ void Y_qsort(void *pBase, size_t nElements, size_t ElementSize, int(*CompareFunc
 void Y_qsort_r(void *pBase, size_t nElements, size_t ElementSize, void *pContext, int(*CompareFunction)(void *, const void *, const void *));
 void *Y_bsearch(const void *pKey, const void *pBase, size_t nElements, size_t ElementSize, int(*CompareFunction)(const void *, const void *));
 
-bool Y_bitscanforward(uint8 mask, uint32 *index);
-bool Y_bitscanforward(uint16 mask, uint32 *index);
+bool Y_bitscanforward(uint8 mask, uint8 *index);
+bool Y_bitscanforward(uint16 mask, uint16 *index);
 bool Y_bitscanforward(uint32 mask, uint32 *index);
-bool Y_bitscanforward(uint64 mask, uint32 *index);
-bool Y_bitscanreverse(uint8 mask, uint32 *index);
-bool Y_bitscanreverse(uint16 mask, uint32 *index);
+bool Y_bitscanforward(uint64 mask, uint64 *index);
+bool Y_bitscanreverse(uint8 mask, uint8 *index);
+bool Y_bitscanreverse(uint16 mask, uint16 *index);
 bool Y_bitscanreverse(uint32 mask, uint32 *index);
-bool Y_bitscanreverse(uint64 mask, uint32 *index);
+bool Y_bitscanreverse(uint64 mask, uint64 *index);
 uint32 Y_popcnt(uint8 value);
 uint32 Y_popcnt(uint16 value);
 uint32 Y_popcnt(uint32 value);

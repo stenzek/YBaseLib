@@ -353,7 +353,7 @@ void *Y_bsearch(const void *pKey, const void *pBase, size_t nElements, size_t El
     return bsearch(pKey, pBase, nElements, ElementSize, CompareFunction);
 }
 
-bool Y_bitscanforward(uint8 mask, uint32 *index)
+bool Y_bitscanforward(uint8 mask, uint8 *index)
 {
     // possibly use this implementation: http://stackoverflow.com/questions/355967/how-to-use-msvc-intrinsics-to-get-the-equivalent-of-this-gcc-code
     if (mask & 0x0F)
@@ -420,14 +420,103 @@ bool Y_bitscanforward(uint8 mask, uint32 *index)
     return false;
 }
 
-bool Y_bitscanforward(uint16 mask, uint32 *index)
+bool Y_bitscanforward(uint16 mask, uint16 *index)
 {
-    if (Y_bitscanforward((uint8)mask, index))
-        return true;
-
-    if (Y_bitscanforward((uint8)(mask >> 8), index))
+    uint8 temp;
+    if (Y_bitscanforward((uint8)mask, &temp))
     {
-        *index += 8;
+        *index = temp;
+        return true;
+    }
+
+    if (Y_bitscanforward((uint8)(mask >> 8), &temp))
+    {
+        *index = temp + 8;
+        return true;
+    }
+
+    return false;
+}
+
+bool Y_bitscanreverse(uint8 mask, uint8 *index)
+{
+    // possibly use this implementation: http://stackoverflow.com/questions/355967/how-to-use-msvc-intrinsics-to-get-the-equivalent-of-this-gcc-code
+    if (mask & 0xF0)
+    {
+        // top half
+        if (mask & 0xC0)
+        {
+            if (mask & 0x80)
+            {
+                *index = 7;
+                return true;
+            }
+            else // 0x40
+            {
+                *index = 6;
+                return true;
+            }
+        }
+        else
+        {
+            if (mask & 0x20)
+            {
+                *index = 5;
+                return true;
+            }
+            else // 0x10
+            {
+                *index = 4;
+                return true;
+            }
+        }
+    }
+    else if (mask & 0x0F)
+    {
+        // bottom half
+        if (mask & 0x0C)
+        {
+            if (mask & 0x08)
+            {
+                *index = 3;
+                return true;
+            }
+            else // 0x04
+            {
+                *index = 2;
+                return true;
+            }
+        }
+        else
+        {
+            if (mask & 0x02)
+            {
+                *index = 1;
+                return true;
+            }
+            else // 0x01
+            {
+                *index = 0;
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+bool Y_bitscanreverse(uint16 mask, uint16 *index)
+{
+    uint8 temp;
+    if (Y_bitscanreverse((uint8)(mask >> 8), &temp))
+    {
+        *index = temp + 8;
+        return true;
+    }
+
+    if (Y_bitscanreverse((uint8)mask, &temp))
+    {
+        *index = temp;
         return true;
     }
 
@@ -486,17 +575,24 @@ bool Y_bitscanforward(uint32 mask, uint32 *index)
     return (_BitScanForward((unsigned long *)index, mask) != 0);
 }
 
-bool Y_bitscanforward(uint64 mask, uint32 *index)
+bool Y_bitscanforward(uint64 mask, uint64 *index)
 {
+    unsigned long temp;
 #ifdef Y_CPU_X64
-    return (_BitScanForward64((unsigned long *)index, mask) != 0);
+    if (!_BitScanForward64(&temp, mask))
+        return false;
+    *index = temp;
+    return true;
 #else
-    if (_BitScanForward((unsigned long *)index, (uint32)mask))
-        return true;
-
-    if (_BitScanForward((unsigned long *)index, (uint32)(mask >> 32)))
+    if (_BitScanForward(&temp, (uint32)mask))
     {
-        *index += 32;
+        *index = temp;
+        return true;
+    }
+
+    if (_BitScanForward(&temp, (uint32)(mask >> 32)))
+    {
+        *index = temp + 32;
         return true;
     }
 
@@ -510,17 +606,24 @@ bool Y_bitscanreverse(uint32 mask, uint32 *index)
     return (_BitScanReverse((unsigned long *)index, mask) != 0);
 }
 
-bool Y_bitscanreverse(uint64 mask, uint32 *index)
+bool Y_bitscanreverse(uint64 mask, uint64 *index)
 {
+    unsigned long temp;
 #ifdef Y_CPU_X64
-    return (_BitScanReverse64((unsigned long *)index, mask) != 0);
+    if (!_BitScanReverse64(&temp, mask))
+        return false;
+    *index = temp;
+    return true;
 #else
-    if (_BitScanReverse((unsigned long *)index, (uint32)mask))
-        return true;
-
-    if (_BitScanReverse((unsigned long *)index, (uint32)(mask >> 32)))
+    if (_BitScanReverse(&temp, (uint32)(mask >> 32)))
     {
-        *index += 32;
+        *index = temp + 32;
+        return true;
+    }
+
+    if (_BitScanReverse(&temp, (uint32)mask))
+    {
+        *index = temp;
         return true;
     }
 
@@ -539,7 +642,7 @@ bool Y_bitscanforward(uint32 mask, uint32 *index)
     return true;
 }
 
-bool Y_bitscanforward(uint64 mask, uint32 *index)
+bool Y_bitscanforward(uint64 mask, uint64 *index)
 {
 #ifdef Y_CPU_X64
     if (mask == 0)
@@ -553,7 +656,7 @@ bool Y_bitscanforward(uint64 mask, uint32 *index)
         *index = __builtin_clz((uint32)mask);
         return true;
     }
-    else if ((uint32)(mask >> 32) != 0)
+    if ((uint32)(mask >> 32) != 0)
     {
         *index = __builtin_clz((uint32)(mask >> 32)) + 32;
         return true;
@@ -571,7 +674,7 @@ bool Y_bitscanreverse(uint32 mask, uint32 *index)
     return true;
 }
 
-bool Y_bitscanforward(uint64 mask, uint32 *index)
+bool Y_bitscanforward(uint64 mask, uint64 *index)
 {
 #ifdef Y_CPU_X64
     if (mask == 0)
@@ -580,14 +683,14 @@ bool Y_bitscanforward(uint64 mask, uint32 *index)
     *index = __builtin_ctz(mask);
     return true;
 #else
+    if ((uint32)(mask >> 32) != 0)
+    {
+        *index = __builtin_ctz((uint32)(mask >> 32)) + 32;
+        return true;
+    }
     if ((uint32)mask != 0)
     {
         *index = __builtin_ctz((uint32)mask);
-        return true;
-    }
-    else if ((uint32)(mask >> 32) != 0)
-    {
-        *index = __builtin_ctz((uint32)(mask >> 32)) + 32;
         return true;
     }
     return false;
