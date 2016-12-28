@@ -204,38 +204,48 @@ void CircularBuffer::MoveWritePointer(size_t byteCount)
 
 bool CircularBuffer::Read(void *pDestination, size_t byteCount)
 {
-    // @TODO since this type of operation does not require contiguous allocations, 
-    // we can make the bip buffer behave more like a traditional circular buffer
-    // as an operation, to skip multiple calls.
-    const void *pReadPointer;
-    size_t availableBytes;
-    if (!GetReadPointer(&pReadPointer, &availableBytes) || byteCount > availableBytes)
+    if (byteCount > GetBufferUsed())
         return false;
 
-    // copy data
-    Y_memcpy(pDestination, pReadPointer, byteCount);
-    MoveReadPointer(byteCount);
+    byte* pDestinationPtr = reinterpret_cast<byte*>(pDestination);
+    while (byteCount > 0)
+    {
+        const void *pReadPointer;
+        size_t availableBytes;
+        if (!GetReadPointer(&pReadPointer, &availableBytes))
+            Panic("Buffer failed mid-read.");
+
+        // copy data
+        size_t copyCount = Min(byteCount, availableBytes);
+        Y_memcpy(pDestinationPtr, pReadPointer, copyCount);
+        MoveReadPointer(copyCount);
+        pDestinationPtr += copyCount;
+        byteCount -= copyCount;
+    }
+
     return true;
 }
 
 bool CircularBuffer::Write(const void *pSource, size_t byteCount)
 {
-    // @TODO same as above
-    void *pWritePointer;
-    size_t availableBytes;
-    if (!GetWritePointer(&pWritePointer, &availableBytes))
+    if (byteCount > GetBufferSpace())
         return false;
 
-    // caveat here: GetWritePointer can initialize an empty region B
-    if (byteCount > availableBytes && m_pRegionBTail == m_pBuffer)
+    const byte* pSourcePtr = reinterpret_cast<const byte*>(pSource);
+    while (byteCount > 0)
     {
-        // so clear it again just for consistency's sake
-        m_pRegionBTail = nullptr;
-        return false;
+        void *pWritePointer;
+        size_t availableBytes;
+        if (!GetWritePointer(&pWritePointer, &availableBytes))
+            Panic("Buffer failed mid-write.");
+
+        // copy data
+        size_t copyCount = Min(byteCount, availableBytes);
+        Y_memcpy(pWritePointer, pSourcePtr, copyCount);
+        MoveWritePointer(copyCount);
+        pSourcePtr += copyCount;
+        byteCount -= copyCount;
     }
 
-    // copy data
-    Y_memcpy(pWritePointer, pSource, byteCount);
-    MoveWritePointer(byteCount);
     return true;
 }
