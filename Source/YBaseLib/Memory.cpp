@@ -4,6 +4,10 @@
 #include <cstring>
 #include <cstdlib>
 
+#if defined(Y_COMPILER_MSVC)
+    #include <intrin.h>
+#endif
+
 #if defined(Y_PLATFORM_LINUX)
     #include <malloc.h>
 #endif  
