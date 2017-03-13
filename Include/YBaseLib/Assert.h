@@ -11,9 +11,11 @@ void Y_OnPanicReached(const char *szMessage, const char *szFunction, const char 
 #if Y_BUILD_CONFIG_DEBUG
     #define DebugAssert(expr) if (!(expr)) { Y_OnAssertFailed("Debug assertion failed: '" #expr "'", __FUNCTION__, __FILE__, __LINE__); }
     #define DebugAssertMsg(expr, msg) if (!(expr)) { Y_OnAssertFailed("Debug assertion failed: '" msg "'", __FUNCTION__, __FILE__, __LINE__); }
+    #define DebugUnreachableCode() Y_OnPanicReached("Unreachable code reached" , __FUNCTION__, __FILE__, __LINE__)
 #else
     #define DebugAssert(expr) 
     #define DebugAssertMsg(expr, msg) 
+    #define DebugUnreachableCode()
 #endif
 
 // Panics the application, displaying an error message.
