@@ -527,48 +527,44 @@ bool Y_bitscanreverse(uint16 mask, uint16 *index)
     return false;
 }
 
+// TODO: Use __builtin_popcount
+// Adapted from qemu host-utils.h
 uint32 Y_popcnt(uint8 value)
 {
-    // eek, the branches! find a better way of doing this.
-    uint32 count = 0;
-    if (value & 0x01)
-        count++;
-    if (value & 0x02)
-        count++;
-    if (value & 0x04)
-        count++;
-    if (value & 0x08)
-        count++;
-    if (value & 0x10)
-        count++;
-    if (value & 0x20)
-        count++;
-    if (value & 0x40)
-        count++;
-    if (value & 0x80)
-        count++;
-    return count;
+    value = (value & 0x55) + ((value >> 1) & 0x55);
+    value = (value & 0x33) + ((value >> 2) & 0x33);
+    value = (value & 0x0f) + ((value >> 4) & 0x0f);
+    return static_cast<uint32>(value);
 }
 
 uint32 Y_popcnt(uint16 value)
 {
-    return Y_popcnt((uint8)value) + Y_popcnt((uint8)(value >> 8));
+    value = (value & 0x5555) + ((value >> 1) & 0x5555);
+    value = (value & 0x3333) + ((value >> 2) & 0x3333);
+    value = (value & 0x0f0f) + ((value >> 4) & 0x0f0f);
+    value = (value & 0x00ff) + ((value >> 8) & 0x00ff);
+    return static_cast<uint32>(value);
 }
 
 uint32 Y_popcnt(uint32 value)
 {
-    // http://stackoverflow.com/questions/355967/how-to-use-msvc-intrinsics-to-get-the-equivalent-of-this-gcc-code
-    value -= ((value >> 1) & 0x55555555);
-    value = (((value >> 2) & 0x33333333) + (value & 0x33333333));
-    value = (((value >> 4) + value) & 0x0f0f0f0f);
-    value += (value >> 8);
-    value += (value >> 16);
-    return value & 0x0000003f;
+    value = (value & 0x55555555) + ((value >> 1) & 0x55555555);
+    value = (value & 0x33333333) + ((value >> 2) & 0x33333333);
+    value = (value & 0x0f0f0f0f) + ((value >> 4) & 0x0f0f0f0f);
+    value = (value & 0x00ff00ff) + ((value >> 8) & 0x00ff00ff);
+    value = (value & 0x0000ffff) + ((value >> 16) & 0x0000ffff);
+    return static_cast<uint32>(value);
 }
 
 uint32 Y_popcnt(uint64 value)
 {
-    return Y_popcnt((uint32)value) + Y_popcnt((uint32)(value >> 32));
+    value = (value & 0x5555555555555555ULL) + ((value >> 1) & 0x5555555555555555ULL);
+    value = (value & 0x3333333333333333ULL) + ((value >> 2) & 0x3333333333333333ULL);
+    value = (value & 0x0f0f0f0f0f0f0f0fULL) + ((value >> 4) & 0x0f0f0f0f0f0f0f0fULL);
+    value = (value & 0x00ff00ff00ff00ffULL) + ((value >> 8) & 0x00ff00ff00ff00ffULL);
+    value = (value & 0x0000ffff0000ffffULL) + ((value >> 16) & 0x0000ffff0000ffffULL);
+    value = (value & 0x00000000ffffffffULL) + ((value >> 32) & 0x00000000ffffffffULL);
+    return static_cast<uint32>(value);
 }
 
 #ifdef Y_COMPILER_MSVC
