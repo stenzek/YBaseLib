@@ -54,6 +54,11 @@ TaskQueue::~TaskQueue()
         // release lock
         m_queueLock.Unlock();
     }
+    else if (m_workerThreads.IsEmpty())
+    {
+        // We are using this as a non-threaded task queue.
+        EndThreadTaskQueueProcessing(this);
+    }
 
     // cleanup queue and end threads
     ExitWorkers();
@@ -96,6 +101,11 @@ bool TaskQueue::Initialize(uint32 taskQueueSize /* = DefaultQueueSize */, uint32
             // store thread
             m_workerThreads.Add(pThread);
         }
+    }
+    else
+    {
+        // Non-threaded task queue.
+        BeginThreadTaskQueueProcessing(this);
     }
 
     return true;
@@ -236,9 +246,6 @@ void TaskQueue::QueueBlockingTask(Task *pTask, uint32 taskSize)
 
 bool TaskQueue::ExecuteQueuedTasks()
 {
-    // well we are "temporarily" a worker..
-    BeginThreadTaskQueueProcessing(this);
-
     // result <- any tasks were executed.
     bool result = false;
     m_queueLock.Lock();
@@ -287,7 +294,6 @@ bool TaskQueue::ExecuteQueuedTasks()
     }
 
     m_queueLock.Unlock();
-    EndThreadTaskQueueProcessing(this);
     return result;
 }
 

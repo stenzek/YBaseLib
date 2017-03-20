@@ -39,6 +39,8 @@ public:
     ~TaskQueue();
 
     // Initialize the command queue
+    // If workerThreadCount is set to zero, the calling thread must execute work queued by other threads
+    // by calling ExecuteQueuedTasks.
     bool Initialize(uint32 taskQueueSize = DefaultQueueSize, uint32 workerThreadCount = 1);
 
     // Initialize the command queue using a shared thread pool
@@ -97,7 +99,9 @@ public:
     void QueueBlockingTask(Task *pTask, uint32 taskSize);
     template<class T> void QueueBlockingLambdaTask(const T &lambda)
     {
-        if (m_taskQueueBuffer.GetBufferSize() == 0 || m_workerThreads.IsEmpty() || IsOnWorkerThread())
+        // We can't queue blocking tasks if we're on the same thread, so execute it immediately.
+        // This could cause issues if a non-blocking task is queued first, so beware.
+        if (m_taskQueueBuffer.GetBufferSize() == 0 || IsOnWorkerThread())
         {
             lambda();
             return;
