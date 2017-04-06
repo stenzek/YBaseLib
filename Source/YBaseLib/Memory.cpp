@@ -638,7 +638,7 @@ bool Y_bitscanforward(uint32 mask, uint32 *index)
     if (mask == 0)
         return false;
 
-    *index = __builtin_clz(mask);
+    *index = __builtin_ctz(mask);
     return true;
 }
 
@@ -648,17 +648,17 @@ bool Y_bitscanforward(uint64 mask, uint64 *index)
     if (mask == 0)
         return false;
 
-    *index = __builtin_clz(mask);
+    *index = __builtin_ctz(mask);
     return true;
 #else
     if ((uint32)mask != 0)
     {
-        *index = __builtin_clz((uint32)mask);
+        *index = __builtin_ctz((uint32)mask);
         return true;
     }
     if ((uint32)(mask >> 32) != 0)
     {
-        *index = __builtin_clz((uint32)(mask >> 32)) + 32;
+        *index = __builtin_ctz((uint32)(mask >> 32)) + 32;
         return true;
     }
     return false;
@@ -670,27 +670,27 @@ bool Y_bitscanreverse(uint32 mask, uint32 *index)
     if (mask == 0)
         return false;
 
-    *index = __builtin_ctz(mask);
+    *index = 31u - __builtin_clz(mask);
     return true;
 }
 
-bool Y_bitscanforward(uint64 mask, uint64 *index)
+bool Y_bitscanreverse(uint64 mask, uint64 *index)
 {
 #ifdef Y_CPU_X64
     if (mask == 0)
         return false;
 
-    *index = __builtin_ctz(mask);
+    *index = 63u - __builtin_clz(mask);
     return true;
 #else
     if ((uint32)(mask >> 32) != 0)
     {
-        *index = __builtin_ctz((uint32)(mask >> 32)) + 32;
+        *index = 31u - __builtin_clz((uint32)(mask >> 32)) + 32;
         return true;
     }
     if ((uint32)mask != 0)
     {
-        *index = __builtin_ctz((uint32)mask);
+        *index = 31u - __builtin_clz((uint32)mask);
         return true;
     }
     return false;
