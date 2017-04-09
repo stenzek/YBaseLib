@@ -19,6 +19,7 @@ static inline void EndThreadTaskQueueProcessing(TaskQueue *pTaskQueue)
 
 TaskQueue::TaskQueue()
     : m_workerThreadExitFlag(true)
+    , m_pThreadPool(nullptr)
     , m_activeThreadPoolTasks(0)
     , m_threadPoolYieldToOtherJobs(false)
     , m_activeWorkerThreads(0)
