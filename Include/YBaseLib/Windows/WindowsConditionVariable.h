@@ -8,17 +8,16 @@ class RecursiveMutex;
 class ConditionVariable
 {
 public:
-    ConditionVariable();
-    ~ConditionVariable();
+  ConditionVariable();
+  ~ConditionVariable();
 
-    void Sleep();
-    void SleepAndRelease(Mutex *pMutex);
-    void SleepAndRelease(RecursiveMutex *pMutex);
+  void Sleep();
+  void SleepAndRelease(Mutex* pMutex);
+  void SleepAndRelease(RecursiveMutex* pMutex);
 
-    void WakeAll();
-    void Wake();
+  void WakeAll();
+  void Wake();
 
 private:
-    CONDITION_VARIABLE m_ConditionVariable;
+  CONDITION_VARIABLE m_ConditionVariable;
 };
-

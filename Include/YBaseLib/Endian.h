@@ -4,8 +4,8 @@
 
 enum ENDIAN_TYPE
 {
-    ENDIAN_TYPE_LITTLE,
-    ENDIAN_TYPE_BIG,
+  ENDIAN_TYPE_LITTLE,
+  ENDIAN_TYPE_BIG,
 };
 
 // TODO FIXME
@@ -23,6 +23,6 @@ double Endian_ConvertDouble(uint8 FromType, uint8 ToType, double Value);
 uint16 Y_byteswap_uint16(uint16 uValue);
 uint32 Y_byteswap_uint32(uint32 uValue);
 uint64 Y_byteswap_uint64(uint64 uValue);
-void Y_byteswap_uint16(uint16 *uValue);
-void Y_byteswap_uint32(uint32 *uValue);
-void Y_byteswap_uint64(uint64 *uValue);
+void Y_byteswap_uint16(uint16* uValue);
+void Y_byteswap_uint32(uint32* uValue);
+void Y_byteswap_uint64(uint64* uValue);

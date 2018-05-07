@@ -1,46 +1,40 @@
 #pragma once
-#include "YBaseLib/Common.h"
 #include "YBaseLib/Assert.h"
+#include "YBaseLib/Common.h"
 #include "YBaseLib/Windows/WindowsHeaders.h"
 
 class RecursiveMutex
 {
-    friend class ConditionVariable;
+  friend class ConditionVariable;
 
 public:
-    RecursiveMutex()
+  RecursiveMutex() { InitializeCriticalSection(&m_CriticalSection); }
+
+  ~RecursiveMutex() { DeleteCriticalSection(&m_CriticalSection); }
+
+  void Lock()
+  {
+    EnterCriticalSection(&m_CriticalSection);
+    DebugAssert(m_CriticalSection.RecursionCount >= 1);
+  }
+
+  bool TryLock()
+  {
+    if (TryEnterCriticalSection(&m_CriticalSection) == TRUE)
     {
-        InitializeCriticalSection(&m_CriticalSection);
+      DebugAssert(m_CriticalSection.RecursionCount >= 1);
+      return true;
     }
 
-    ~RecursiveMutex()
-    {
-        DeleteCriticalSection(&m_CriticalSection);
-    }
+    return false;
+  }
 
-    void Lock()
-    {
-        EnterCriticalSection(&m_CriticalSection);
-        DebugAssert(m_CriticalSection.RecursionCount >= 1);
-    }
-
-    bool TryLock()
-    {
-        if (TryEnterCriticalSection(&m_CriticalSection) == TRUE)
-        {
-            DebugAssert(m_CriticalSection.RecursionCount >= 1);
-            return true;
-        }
-
-        return false;
-    }
-
-    void Unlock()
-    {
-        DebugAssert(m_CriticalSection.RecursionCount >= 1);
-        LeaveCriticalSection(&m_CriticalSection);
-    }
+  void Unlock()
+  {
+    DebugAssert(m_CriticalSection.RecursionCount >= 1);
+    LeaveCriticalSection(&m_CriticalSection);
+  }
 
 private:
-    CRITICAL_SECTION m_CriticalSection;
+  CRITICAL_SECTION m_CriticalSection;
 };

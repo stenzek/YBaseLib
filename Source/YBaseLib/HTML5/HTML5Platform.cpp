@@ -6,28 +6,28 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-void Platform::MakeTempFileName(char *filename, uint32 len)
+void Platform::MakeTempFileName(char* filename, uint32 len)
 {
-    uint32 length = Y_strlen(filename);
-    DebugAssert(length < len);
-    mktemp(filename);
+  uint32 length = Y_strlen(filename);
+  DebugAssert(length < len);
+  mktemp(filename);
 }
 
-void Platform::MakeTempFileName(String &filename)
+void Platform::MakeTempFileName(String& filename)
 {
-    mktemp(filename.GetWriteableCharArray());
+  mktemp(filename.GetWriteableCharArray());
 }
 
-bool Platform::GetProgramFileName(String &destination)
+bool Platform::GetProgramFileName(String& destination)
 {
-    // cop-out
-    destination.Assign("/module.js");
-    return true;
+  // cop-out
+  destination.Assign("/module.js");
+  return true;
 }
 
 size_t Platform::GetProgramMemoryUsage()
 {
-    return 0;
+  return 0;
 }
 
-#endif          // Y_PLATFORM_POSIX
+#endif // Y_PLATFORM_POSIX

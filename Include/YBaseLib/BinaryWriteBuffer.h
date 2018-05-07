@@ -4,10 +4,9 @@
 class BinaryWriteBuffer : public BinaryWriter
 {
 public:
-    BinaryWriteBuffer();
-    ~BinaryWriteBuffer();
+  BinaryWriteBuffer();
+  ~BinaryWriteBuffer();
 
-    const byte *GetBufferPointer() const;
-    const uint32 GetBufferSize() const;
+  const byte* GetBufferPointer() const;
+  const uint32 GetBufferSize() const;
 };
-

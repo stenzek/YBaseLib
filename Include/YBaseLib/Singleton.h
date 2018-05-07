@@ -5,9 +5,9 @@ template<class T>
 class Singleton
 {
 public:
-    static T &GetInstance()
-    {
-        static T staticInstance;
-        return staticInstance;
-    }
+  static T& GetInstance()
+  {
+    static T staticInstance;
+    return staticInstance;
+  }
 };

@@ -1,10 +1,10 @@
 #pragma once
 
 #ifndef WIN32_LEAN_AND_MEAN
-    #define WIN32_LEAN_AND_MEAN 1
+#define WIN32_LEAN_AND_MEAN 1
 #endif
-#ifndef NOMINMAX 
-    #define NOMINMAX 1
+#ifndef NOMINMAX
+#define NOMINMAX 1
 #endif
 
 // require vista+
@@ -14,23 +14,23 @@
 
 // hurr i'm windows, i like to conflict, fixme properly later please...
 #if defined(FindTexture)
-    #undef FindTexture
+#undef FindTexture
 #endif
 #if defined(DrawText)
-    #undef DrawText
+#undef DrawText
 #endif
 #if defined(CreateDirectory)
-    #undef CreateDirectory
+#undef CreateDirectory
 #endif
 #if defined(CopyFile)
-    #undef CopyFile
+#undef CopyFile
 #endif
 #if defined(DeleteFile)
-    #undef DeleteFile
+#undef DeleteFile
 #endif
 #if defined(Yield)
-    #undef Yield
+#undef Yield
 #endif
 #if defined(LoadIcon)
-    #undef LoadIcon
+#undef LoadIcon
 #endif

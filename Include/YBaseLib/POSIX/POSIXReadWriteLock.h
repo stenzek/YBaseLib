@@ -4,23 +4,22 @@
 
 class ReadWriteLock
 {
-    friend class ConditionVariable;
+  friend class ConditionVariable;
 
 public:
-    ReadWriteLock();
-    ~ReadWriteLock();
+  ReadWriteLock();
+  ~ReadWriteLock();
 
-    void LockShared();
-    void LockExclusive();
-    void UnlockShared();
-    void UnlockExclusive();
+  void LockShared();
+  void LockExclusive();
+  void UnlockShared();
+  void UnlockExclusive();
 
-    bool TryLockShared();
-    bool TryLockExclusive();
+  bool TryLockShared();
+  bool TryLockExclusive();
 
-    void UpgradeSharedLockToExclusive();
+  void UpgradeSharedLockToExclusive();
 
 private:
-    pthread_rwlock_t m_ReadWriteLock;
+  pthread_rwlock_t m_ReadWriteLock;
 };
-

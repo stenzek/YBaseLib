@@ -1,22 +1,21 @@
 #pragma once
 #include "YBaseLib/Common.h"
 #include "YBaseLib/Functor.h"
-#include "YBaseLib/PODArray.h"
 #include "YBaseLib/Mutex.h"
+#include "YBaseLib/PODArray.h"
 
 class CallbackQueue
 {
 public:
-    CallbackQueue();
-    ~CallbackQueue();
+  CallbackQueue();
+  ~CallbackQueue();
 
-    void AddCallback(Functor *pCallback);
+  void AddCallback(Functor* pCallback);
 
-    void RunCallbacks();
+  void RunCallbacks();
 
 private:
-    typedef PODArray<Functor *> CallbackFunctionQueue;
-    CallbackFunctionQueue m_CallbackQueue;
-    Mutex m_CallbackQueueLock;
+  typedef PODArray<Functor*> CallbackFunctionQueue;
+  CallbackFunctionQueue m_CallbackQueue;
+  Mutex m_CallbackQueueLock;
 };
-

@@ -7,34 +7,28 @@
 #include "YBaseLib/Log.h"
 Log_SetChannel(HTML5ConditionVariable);
 
-ConditionVariable::ConditionVariable()
-{
+ConditionVariable::ConditionVariable() {}
 
+ConditionVariable::~ConditionVariable() {}
+
+void ConditionVariable::SleepAndRelease(Mutex* pMutex)
+{
+  Log_WarningPrintf("ConditionVariable::SleepAndRelease unimplemented on HTML5.");
 }
 
-ConditionVariable::~ConditionVariable()
+void ConditionVariable::SleepAndRelease(RecursiveMutex* pMutex)
 {
-
-}
-
-void ConditionVariable::SleepAndRelease(Mutex *pMutex)
-{
-    Log_WarningPrintf("ConditionVariable::SleepAndRelease unimplemented on HTML5.");
-}
-
-void ConditionVariable::SleepAndRelease(RecursiveMutex *pMutex)
-{
-    Log_WarningPrintf("ConditionVariable::SleepAndRelease unimplemented on HTML5.");
+  Log_WarningPrintf("ConditionVariable::SleepAndRelease unimplemented on HTML5.");
 }
 
 void ConditionVariable::WakeAll()
 {
-    Log_WarningPrintf("ConditionVariable::WakeAll unimplemented on HTML5.");
+  Log_WarningPrintf("ConditionVariable::WakeAll unimplemented on HTML5.");
 }
 
 void ConditionVariable::Wake()
 {
-    Log_WarningPrintf("ConditionVariable::Wake unimplemented on HTML5.");
+  Log_WarningPrintf("ConditionVariable::Wake unimplemented on HTML5.");
 }
 
 #endif

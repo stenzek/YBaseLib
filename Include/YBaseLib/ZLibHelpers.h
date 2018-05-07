@@ -30,12 +30,15 @@ bool WriteFileStreamToZipProgress(zipFile pZipFile, const char *FileName, ByteSt
 
 // deflate helpers. buffer should be at least nbytes * 2 long
 uint32 GetDeflatedBufferUpperBounds(uint32 cbSourceBuffer, const int compressionLevel = Z_DEFAULT_COMPRESSION);
-bool WriteDeflatedDataToBuffer(void *pDestinationBuffer, uint32 cbDestinationBuffer, uint32 *pCompressedSize, const void *pSourceBuffer, uint32 cbSourceBuffer, const int compressionLevel = Z_DEFAULT_COMPRESSION);
-//bool WriteDeflatedDataToStream(ByteStream *pDestinationStream, const void *pSourceBuffer, uint32 cbSourceBuffer, const int compressionLevel = Z_DEFAULT_COMPRESSION);
-bool ReadDeflatedDataFromBuffer(void *pDestinationBuffer, uint32 cbDestinationBuffer, uint32 *pDecompressedSize, const void *pSourceBuffer, uint32 cbSourceBuffer);
-//bool ReadDeflatedDataFromStream(void *pDestinationBuffer, uint32 cbDestinationBuffer, ByteStream *pSourceStream);
+bool WriteDeflatedDataToBuffer(void* pDestinationBuffer, uint32 cbDestinationBuffer, uint32* pCompressedSize,
+                               const void* pSourceBuffer, uint32 cbSourceBuffer,
+                               const int compressionLevel = Z_DEFAULT_COMPRESSION);
+// bool WriteDeflatedDataToStream(ByteStream *pDestinationStream, const void *pSourceBuffer, uint32 cbSourceBuffer,
+// const int compressionLevel = Z_DEFAULT_COMPRESSION);
+bool ReadDeflatedDataFromBuffer(void* pDestinationBuffer, uint32 cbDestinationBuffer, uint32* pDecompressedSize,
+                                const void* pSourceBuffer, uint32 cbSourceBuffer);
+// bool ReadDeflatedDataFromStream(void *pDestinationBuffer, uint32 cbDestinationBuffer, ByteStream *pSourceStream);
 
+} // namespace ZipHelpers
 
-}       // namespace ZipHelpers
-
-#endif      // HAVE_ZLIB
+#endif // HAVE_ZLIB

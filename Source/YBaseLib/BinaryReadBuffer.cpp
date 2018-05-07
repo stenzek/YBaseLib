@@ -2,32 +2,31 @@
 #include "YBaseLib/ByteStream.h"
 #include "YBaseLib/Memory.h"
 
-BinaryReadBuffer::BinaryReadBuffer(uint32 size)
-    : BinaryReader(nullptr)
+BinaryReadBuffer::BinaryReadBuffer(uint32 size) : BinaryReader(nullptr)
 {
-    m_pMemory = (byte *)Y_malloc(size);
-    m_size = size;
+  m_pMemory = (byte*)Y_malloc(size);
+  m_size = size;
 
-    // override the BinaryWriter value
-    m_pStream = ByteStream_CreateMemoryStream(m_pMemory, m_size);
+  // override the BinaryWriter value
+  m_pStream = ByteStream_CreateMemoryStream(m_pMemory, m_size);
 }
 
 BinaryReadBuffer::~BinaryReadBuffer()
 {
-    m_pStream->Release();
+  m_pStream->Release();
 }
 
-const byte *BinaryReadBuffer::GetBufferPointer() const
+const byte* BinaryReadBuffer::GetBufferPointer() const
 {
-    return m_pMemory;
+  return m_pMemory;
 }
 
-byte *BinaryReadBuffer::GetBufferPointer()
+byte* BinaryReadBuffer::GetBufferPointer()
 {
-    return m_pMemory;
+  return m_pMemory;
 }
 
 uint32 BinaryReadBuffer::GetBufferSize() const
 {
-    return m_size;
+  return m_size;
 }

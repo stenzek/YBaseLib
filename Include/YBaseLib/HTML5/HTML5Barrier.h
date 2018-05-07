@@ -1,20 +1,20 @@
 #pragma once
-#include "YBaseLib/Event.h"
 #include "YBaseLib/Atomic.h"
+#include "YBaseLib/Event.h"
 
 class Barrier
 {
 public:
-    Barrier(uint32 threadCount);
-    ~Barrier();
+  Barrier(uint32 threadCount);
+  ~Barrier();
 
-    const uint32 GetThreadCount() const { return m_threadCount; }
-    void SetThreadCount(uint32 threadCount);
+  const uint32 GetThreadCount() const { return m_threadCount; }
+  void SetThreadCount(uint32 threadCount);
 
-    void Wait();
-    
+  void Wait();
+
 private:
-    uint32 m_threadCount;
-    Y_ATOMIC_DECL uint32 m_enteredThreadCount;
-    Y_ATOMIC_DECL uint32 m_exitedThreadCount;
+  uint32 m_threadCount;
+  Y_ATOMIC_DECL uint32 m_enteredThreadCount;
+  Y_ATOMIC_DECL uint32 m_exitedThreadCount;
 };

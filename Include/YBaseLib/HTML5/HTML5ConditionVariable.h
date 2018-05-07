@@ -3,21 +3,19 @@
 
 class Mutex;
 class RecursiveMutex;
-//class ReadWriteLock;
+// class ReadWriteLock;
 
 class ConditionVariable
 {
 public:
-    ConditionVariable();
-    ~ConditionVariable();
+  ConditionVariable();
+  ~ConditionVariable();
 
-    void SleepAndRelease(Mutex *pMutex);
-    void SleepAndRelease(RecursiveMutex *pMutex);
+  void SleepAndRelease(Mutex* pMutex);
+  void SleepAndRelease(RecursiveMutex* pMutex);
 
-    void WakeAll();
-    void Wake();
+  void WakeAll();
+  void Wake();
 
 private:
-    
 };
-

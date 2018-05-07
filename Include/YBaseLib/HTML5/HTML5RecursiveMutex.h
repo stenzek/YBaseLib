@@ -1,36 +1,21 @@
 #pragma once
-#include "YBaseLib/Common.h"
 #include "YBaseLib/Assert.h"
+#include "YBaseLib/Common.h"
 
 class RecursiveMutex
 {
-    friend class ConditionVariable;
+  friend class ConditionVariable;
 
 public:
-    RecursiveMutex()
-    {
+  RecursiveMutex() {}
 
-    }
+  ~RecursiveMutex() {}
 
-    ~RecursiveMutex()
-    {
+  void Lock() {}
 
-    }
+  bool TryLock() { return true; }
 
-    void Lock()
-    {
-
-    }
-
-    bool TryLock()
-    {
-        return true;
-    }
-
-    void Unlock()
-    {
-
-    }
+  void Unlock() {}
 
 private:
 };

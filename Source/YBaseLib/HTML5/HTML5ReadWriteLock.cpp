@@ -4,49 +4,28 @@
 
 #include "YBaseLib/HTML5/HTML5ReadWriteLock.h"
 
-ReadWriteLock::ReadWriteLock()
-{
-    
-}
+ReadWriteLock::ReadWriteLock() {}
 
-ReadWriteLock::~ReadWriteLock()
-{
-    
-}
+ReadWriteLock::~ReadWriteLock() {}
 
-void ReadWriteLock::LockShared()
-{
-    
-}
+void ReadWriteLock::LockShared() {}
 
-void ReadWriteLock::LockExclusive()
-{
-    
-}
+void ReadWriteLock::LockExclusive() {}
 
-void ReadWriteLock::UnlockShared()
-{
-    
-}
+void ReadWriteLock::UnlockShared() {}
 
-void ReadWriteLock::UnlockExclusive()
-{
-    
-}
+void ReadWriteLock::UnlockExclusive() {}
 
 bool ReadWriteLock::TryLockShared()
 {
-    return true; 
+  return true;
 }
 
 bool ReadWriteLock::TryLockExclusive()
 {
-    return true;
+  return true;
 }
 
-void ReadWriteLock::UpgradeSharedLockToExclusive()
-{
-
-}
+void ReadWriteLock::UpgradeSharedLockToExclusive() {}
 
 #endif

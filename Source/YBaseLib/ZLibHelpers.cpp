@@ -5,7 +5,7 @@
 
 // Ensure zlib gets pulled in
 #if Y_COMPILER_MSVC
-    #pragma comment(lib, "zdll.lib")
+#pragma comment(lib, "zdll.lib")
 #endif
 
 namespace ZLibHelpers {
@@ -259,98 +259,102 @@ bool WriteFileStreamToZipProgress(void *pZipFile, const char *FileName, ByteStre
 
 uint32 GetDeflatedBufferUpperBounds(uint32 cbSourceBuffer, const int compressionLevel /*= Z_DEFAULT_COMPRESSION*/)
 {
-    z_stream zStream;
-    Y_memzero(&zStream, sizeof(zStream));
-    if (deflateInit(&zStream, compressionLevel) != Z_OK)
-        return cbSourceBuffer * 4;
+  z_stream zStream;
+  Y_memzero(&zStream, sizeof(zStream));
+  if (deflateInit(&zStream, compressionLevel) != Z_OK)
+    return cbSourceBuffer * 4;
 
-    uint32 nBytes = deflateBound(&zStream, cbSourceBuffer);
-    deflateEnd(&zStream);
-    return nBytes;
+  uint32 nBytes = deflateBound(&zStream, cbSourceBuffer);
+  deflateEnd(&zStream);
+  return nBytes;
 }
 
-bool WriteDeflatedDataToBuffer(void *pDestinationBuffer, uint32 cbDestinationBuffer, uint32 *pCompressedSize, const void *pSourceBuffer, uint32 cbSourceBuffer, const int compressionLevel /*= Z_DEFAULT_COMPRESSION*/)
+bool WriteDeflatedDataToBuffer(void* pDestinationBuffer, uint32 cbDestinationBuffer, uint32* pCompressedSize,
+                               const void* pSourceBuffer, uint32 cbSourceBuffer,
+                               const int compressionLevel /*= Z_DEFAULT_COMPRESSION*/)
 {
-    z_stream zStream;
-    Y_memzero(&zStream, sizeof(zStream));
-    if (deflateInit(&zStream, compressionLevel) != Z_OK)
-        return false;
+  z_stream zStream;
+  Y_memzero(&zStream, sizeof(zStream));
+  if (deflateInit(&zStream, compressionLevel) != Z_OK)
+    return false;
 
-    zStream.avail_in = cbSourceBuffer;
-    zStream.next_in = (Bytef *)pSourceBuffer;
-    zStream.avail_out = cbDestinationBuffer;
-    zStream.next_out = (Bytef *)pDestinationBuffer;
-    while (zStream.avail_in > 0)
+  zStream.avail_in = cbSourceBuffer;
+  zStream.next_in = (Bytef*)pSourceBuffer;
+  zStream.avail_out = cbDestinationBuffer;
+  zStream.next_out = (Bytef*)pDestinationBuffer;
+  while (zStream.avail_in > 0)
+  {
+    int ret = deflate(&zStream, Z_FINISH);
+    if (ret == Z_STREAM_END)
     {
-        int ret = deflate(&zStream, Z_FINISH);
-        if (ret == Z_STREAM_END)
-        {
-            break;
-        }
-        else if (ret == Z_OK && zStream.avail_out > 0)
-        {
-            continue;
-        }
-        else
-        {
-            deflateEnd(&zStream);
-            return false;
-        }
+      break;
     }
+    else if (ret == Z_OK && zStream.avail_out > 0)
+    {
+      continue;
+    }
+    else
+    {
+      deflateEnd(&zStream);
+      return false;
+    }
+  }
 
-    if (pCompressedSize != NULL)
-        *pCompressedSize = (uint32)zStream.total_out;
+  if (pCompressedSize != NULL)
+    *pCompressedSize = (uint32)zStream.total_out;
 
-    deflateEnd(&zStream);
-    return true;
+  deflateEnd(&zStream);
+  return true;
 }
 
-// bool WriteDeflatedDataToStream(ByteStream *pDestinationStream, const void *pSourceBuffer, uint32 cbSourceBuffer, const int compressionLevel /*= Z_DEFAULT_COMPRESSION*/)
+// bool WriteDeflatedDataToStream(ByteStream *pDestinationStream, const void *pSourceBuffer, uint32 cbSourceBuffer,
+// const int compressionLevel /*= Z_DEFAULT_COMPRESSION*/)
 // {
-// 
+//
 // }
 
-bool ReadDeflatedDataFromBuffer(void *pDestinationBuffer, uint32 cbDestinationBuffer, uint32 *pDecompressedSize, const void *pSourceBuffer, uint32 cbSourceBuffer)
+bool ReadDeflatedDataFromBuffer(void* pDestinationBuffer, uint32 cbDestinationBuffer, uint32* pDecompressedSize,
+                                const void* pSourceBuffer, uint32 cbSourceBuffer)
 {
-    z_stream zStream;
-    Y_memzero(&zStream, sizeof(zStream));
-    if (inflateInit(&zStream) != Z_OK)
-        return false;
+  z_stream zStream;
+  Y_memzero(&zStream, sizeof(zStream));
+  if (inflateInit(&zStream) != Z_OK)
+    return false;
 
-    zStream.avail_in = cbSourceBuffer;
-    zStream.next_in = (Bytef *)pSourceBuffer;
-    zStream.avail_out = cbDestinationBuffer;
-    zStream.next_out = (Bytef *)pDestinationBuffer;
-    while (zStream.avail_in > 0)
+  zStream.avail_in = cbSourceBuffer;
+  zStream.next_in = (Bytef*)pSourceBuffer;
+  zStream.avail_out = cbDestinationBuffer;
+  zStream.next_out = (Bytef*)pDestinationBuffer;
+  while (zStream.avail_in > 0)
+  {
+    int ret = inflate(&zStream, Z_FINISH);
+    if (ret == Z_STREAM_END)
     {
-        int ret = inflate(&zStream, Z_FINISH);
-        if (ret == Z_STREAM_END)
-        {
-            break;
-        }
-        else if (ret == Z_OK && zStream.avail_out > 0)
-        {
-            continue;
-        }
-        else
-        {
-            deflateEnd(&zStream);
-            return false;
-        }
+      break;
     }
+    else if (ret == Z_OK && zStream.avail_out > 0)
+    {
+      continue;
+    }
+    else
+    {
+      deflateEnd(&zStream);
+      return false;
+    }
+  }
 
-    if (pDecompressedSize != NULL)
-        *pDecompressedSize = (uint32)zStream.total_out;
+  if (pDecompressedSize != NULL)
+    *pDecompressedSize = (uint32)zStream.total_out;
 
-    deflateEnd(&zStream);
-    return true;
+  deflateEnd(&zStream);
+  return true;
 }
 
 // bool ReadDeflatedDataFromStream(void *pDestinationBuffer, uint32 cbDestinationBuffer, ByteStream *pSourceStream)
 // {
-// 
+//
 // }
 
-}           // namespace ZipHelpers
+} // namespace ZipHelpers
 
-#endif      // HAVE_ZLIB
+#endif // HAVE_ZLIB

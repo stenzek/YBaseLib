@@ -2,14 +2,13 @@
 #include "YBaseLib/Common.h"
 
 #if defined(Y_PLATFORM_WINDOWS)
-    #include "YBaseLib/Windows/WindowsReadWriteLock.h"
+#include "YBaseLib/Windows/WindowsReadWriteLock.h"
 #elif defined(Y_PLATFORM_ANDROID)
-    #include "YBaseLib/Android/AndroidReadWriteLock.h"
+#include "YBaseLib/Android/AndroidReadWriteLock.h"
 #elif defined(Y_PLATFORM_HTML5)
-    #include "YBaseLib/HTML5/HTML5ReadWriteLock.h"
+#include "YBaseLib/HTML5/HTML5ReadWriteLock.h"
 #elif defined(Y_PLATFORM_POSIX)
-    #include "YBaseLib/POSIX/POSIXReadWriteLock.h"
+#include "YBaseLib/POSIX/POSIXReadWriteLock.h"
 #else
-    #error Unknown platform.
+#error Unknown platform.
 #endif
-
