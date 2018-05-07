@@ -698,24 +698,3 @@ bool Y_bitscanreverse(uint64 mask, uint64 *index)
 }
 
 #endif
-
-// ---------------------------------------------------------------------------------------------------------------------
-// overload the new operators
-#ifndef Y_PLATFORM_HTML5
-
-void *operator new(size_t uNumBytes)
-{
-    return Y_malloc(uNumBytes);
-}
-
-#if defined(Y_COMPILER_MSVC)
-void operator delete(void *pMemory) 
-#else
-void operator delete(void *pMemory) noexcept
-#endif
-{
-    return Y_free(pMemory);
-}
-
-#endif
-
