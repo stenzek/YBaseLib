@@ -458,7 +458,7 @@ uint32 MemoryByteStream::Read(void* pDestination, uint32 ByteCount)
 
   if (sz > 0)
   {
-    Y_memcpy(pDestination, m_pMemory + m_iPosition, sz);
+    std::memcpy(pDestination, m_pMemory + m_iPosition, sz);
     m_iPosition += sz;
   }
 
@@ -493,7 +493,7 @@ uint32 MemoryByteStream::Write(const void* pSource, uint32 ByteCount)
 
   if (sz > 0)
   {
-    Y_memcpy(m_pMemory + m_iPosition, pSource, sz);
+    std::memcpy(m_pMemory + m_iPosition, pSource, sz);
     m_iPosition += sz;
   }
 
@@ -588,7 +588,7 @@ uint32 ReadOnlyMemoryByteStream::Read(void* pDestination, uint32 ByteCount)
 
   if (sz > 0)
   {
-    Y_memcpy(pDestination, m_pMemory + m_iPosition, sz);
+    std::memcpy(pDestination, m_pMemory + m_iPosition, sz);
     m_iPosition += sz;
   }
 
@@ -685,14 +685,14 @@ GrowableMemoryByteStream::GrowableMemoryByteStream(void* pInitialMem, uint32 Ini
   else
   {
     m_iMemorySize = Max(InitialMemSize, (uint32)64);
-    m_pPrivateMemory = m_pMemory = (byte*)Y_malloc(m_iMemorySize);
+    m_pPrivateMemory = m_pMemory = (byte*)std::malloc(m_iMemorySize);
   }
 }
 
 GrowableMemoryByteStream::~GrowableMemoryByteStream()
 {
   if (m_pPrivateMemory != nullptr)
-    Y_free(m_pPrivateMemory);
+    std::free(m_pPrivateMemory);
 }
 
 bool GrowableMemoryByteStream::ReadByte(byte* pDestByte)
@@ -714,7 +714,7 @@ uint32 GrowableMemoryByteStream::Read(void* pDestination, uint32 ByteCount)
 
   if (sz > 0)
   {
-    Y_memcpy(pDestination, m_pMemory + m_iPosition, sz);
+    std::memcpy(pDestination, m_pMemory + m_iPosition, sz);
     m_iPosition += sz;
   }
 
@@ -745,7 +745,7 @@ uint32 GrowableMemoryByteStream::Write(const void* pSource, uint32 ByteCount)
   if ((m_iPosition + ByteCount) > m_iMemorySize)
     Grow(ByteCount);
 
-  Y_memcpy(m_pMemory + m_iPosition, pSource, ByteCount);
+  std::memcpy(m_pMemory + m_iPosition, pSource, ByteCount);
   m_iPosition += ByteCount;
   m_iSize = Max(m_iSize, m_iPosition);
   return ByteCount;
@@ -817,14 +817,14 @@ void GrowableMemoryByteStream::Grow(uint32 MinimumGrowth)
   uint32 NewSize = Max(m_iMemorySize + MinimumGrowth, m_iMemorySize * 2);
   if (m_pPrivateMemory == nullptr)
   {
-    m_pPrivateMemory = (byte*)Y_malloc(NewSize);
-    Y_memcpy(m_pPrivateMemory, m_pMemory, m_iSize);
+    m_pPrivateMemory = (byte*)std::malloc(NewSize);
+    std::memcpy(m_pPrivateMemory, m_pMemory, m_iSize);
     m_pMemory = m_pPrivateMemory;
     m_iMemorySize = NewSize;
   }
   else
   {
-    m_pPrivateMemory = m_pMemory = (byte*)Y_realloc(m_pPrivateMemory, NewSize);
+    m_pPrivateMemory = m_pMemory = (byte*)std::realloc(m_pPrivateMemory, NewSize);
     m_iMemorySize = NewSize;
   }
 }
@@ -894,7 +894,7 @@ bool ByteStream_OpenFileStream(const char* fileName, uint32 openMode, ByteStream
       }
       else
       {
-        Y_memcpy(tempStr, fileName, 3);
+        std::memcpy(tempStr, fileName, 3);
         i = 3;
       }
     }
@@ -1096,7 +1096,7 @@ bool ByteStream_OpenFileStream(const char* fileName, uint32 openMode, ByteStream
       }
       else
       {
-        Y_memcpy(tempStr, fileName, 3);
+        std::memcpy(tempStr, fileName, 3);
         i = 3;
       }
     }

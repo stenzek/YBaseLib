@@ -203,13 +203,13 @@ void XMLWriter::WriteBase64EncodedData(const void* pData, uint32 dataLength)
     return;
 
   uint32 tempStrLength = Y_getencodedbase64length(dataLength) + 1;
-  char* tempStr = (char*)Y_malloc(tempStrLength);
+  char* tempStr = (char*)std::malloc(tempStrLength);
 
   uint32 nChars = Y_makebase64(pData, dataLength, tempStr, tempStrLength);
   DebugAssert(nChars > 0);
   WriteRaw(tempStr, nChars);
 
-  Y_free(tempStr);
+  std::free(tempStr);
 }
 
 #endif // HAVE_LIBXML2

@@ -51,7 +51,7 @@ bool Platform::GetProgramFileName(String& destination)
   HANDLE hProcess = GetCurrentProcess();
 
   DWORD bufferSize = MAX_PATH;
-  char* buffer = (char*)Y_malloc(bufferSize + 1);
+  char* buffer = (char*)std::malloc(bufferSize + 1);
   DWORD nChars;
 
   for (;;)
@@ -63,7 +63,7 @@ bool Platform::GetProgramFileName(String& destination)
     if (GetLastError() == ERROR_INSUFFICIENT_BUFFER)
     {
       bufferSize *= 2;
-      buffer = (char*)Y_realloc(buffer, bufferSize + 1);
+      buffer = (char*)std::realloc(buffer, bufferSize + 1);
     }
     else
     {
@@ -77,7 +77,7 @@ bool Platform::GetProgramFileName(String& destination)
 
   destination.Clear();
   destination.AppendString(buffer, nChars);
-  Y_free(buffer);
+  std::free(buffer);
 
   FileSystem::CanonicalizePath(destination);
   return true;

@@ -39,7 +39,7 @@ void CallbackQueue::RunCallbacks()
         delete pCallbacks[i];
       }
 
-      Y_free(pCallbacks);
+      std::free(pCallbacks);
     }
     else
     {

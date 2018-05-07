@@ -446,8 +446,8 @@ private:
     member->Value.~ValueType();
 
     // free memory
-    Y_free(member->Key);
-    Y_free(member);
+    std::free(member->Key);
+    std::free(member);
   }
 
   void FreeMembers()

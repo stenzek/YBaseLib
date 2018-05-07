@@ -4,13 +4,13 @@
 SocketAddress::SocketAddress(const SocketAddress& copy)
 {
   m_type = copy.m_type;
-  Y_memcpy(m_data, copy.m_data, sizeof(m_data));
+  std::memcpy(m_data, copy.m_data, sizeof(m_data));
 }
 
 SocketAddress& SocketAddress::operator=(const SocketAddress& copy)
 {
   m_type = copy.m_type;
-  Y_memcpy(m_data, copy.m_data, sizeof(m_data));
+  std::memcpy(m_data, copy.m_data, sizeof(m_data));
   return *this;
 }
 
@@ -23,7 +23,7 @@ void SocketAddress::SetUnknown()
 void SocketAddress::SetFromSockaddr(const void* pSockaddr, size_t sockaddrLength)
 {
   Y_memzero(m_data, sizeof(m_data));
-  Y_memcpy(m_data, pSockaddr, Min(sockaddrLength, sizeof(m_data)));
+  std::memcpy(m_data, pSockaddr, Min(sockaddrLength, sizeof(m_data)));
 }
 
 bool SocketAddress::Parse(Type type, const char* address, uint32 port, SocketAddress* pOutAddress)

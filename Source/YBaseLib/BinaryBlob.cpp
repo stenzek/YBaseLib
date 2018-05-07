@@ -5,12 +5,12 @@
 
 BinaryBlob::BinaryBlob(uint32 iDataSize) : m_iDataSize(iDataSize)
 {
-  m_pDataPointer = (byte*)Y_malloc(iDataSize);
+  m_pDataPointer = (byte*)std::malloc(iDataSize);
 }
 
 BinaryBlob::~BinaryBlob()
 {
-  Y_free(m_pDataPointer);
+  std::free(m_pDataPointer);
 }
 
 BinaryBlob* BinaryBlob::Allocate(uint32 DataSize)
@@ -49,7 +49,7 @@ BinaryBlob* BinaryBlob::CreateFromPointer(const void* pData, uint32 dataSize)
 {
   BinaryBlob* pBlob = BinaryBlob::Allocate(dataSize);
   if (dataSize > 0)
-    Y_memcpy(pBlob->GetDataPointer(), pData, dataSize);
+    std::memcpy(pBlob->GetDataPointer(), pData, dataSize);
 
   return pBlob;
 }

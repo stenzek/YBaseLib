@@ -45,7 +45,7 @@ public:
     for (i = 0; i < m_size; i++)
       _Destruct(i);
 
-    Y_free(m_pElements);
+    std::free(m_pElements);
   }
 
   void Clear()
@@ -102,7 +102,7 @@ public:
     for (i = 0; i < m_size; i++)
       _Construct(i, pOldElements[i]);
 
-    Y_free(pOldElements);
+    std::free(pOldElements);
   }
 
   void Shrink()
@@ -121,11 +121,11 @@ public:
       for (i = 0; i < m_size; i++)
         _Construct(i, pOldElements[i]);
 
-      Y_free(pOldElements);
+      std::free(pOldElements);
     }
     else
     {
-      Y_free(m_pElements);
+      std::free(m_pElements);
       m_pElements = NULL;
       m_reserve = 0;
     }
@@ -239,7 +239,7 @@ public:
     if (m_pElements != NULL)
     {
       Clear();
-      Y_free(m_pElements);
+      std::free(m_pElements);
       m_pElements = NULL;
       m_reserve = 0;
     }

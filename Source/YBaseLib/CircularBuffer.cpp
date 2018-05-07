@@ -9,7 +9,7 @@ CircularBuffer::CircularBuffer()
 }
 
 CircularBuffer::CircularBuffer(size_t bufferSize)
-  : m_pBuffer((byte*)Y_malloc(bufferSize)), m_pRegionAHead(m_pBuffer), m_pRegionATail(m_pBuffer),
+  : m_pBuffer((byte*)std::malloc(bufferSize)), m_pRegionAHead(m_pBuffer), m_pRegionATail(m_pBuffer),
     m_pRegionBTail(nullptr), m_bufferSize(bufferSize), m_ownsBuffer(true)
 {
   // @TODO safe malloc
@@ -25,13 +25,13 @@ CircularBuffer::CircularBuffer(byte* pBuffer, size_t bufferSize)
 CircularBuffer::~CircularBuffer()
 {
   if (m_ownsBuffer)
-    Y_free(m_pBuffer);
+    std::free(m_pBuffer);
 }
 
 void CircularBuffer::ResizeBuffer(size_t newBufferSize)
 {
   DebugAssert(m_ownsBuffer && newBufferSize >= m_bufferSize);
-  byte* pNewBuffer = (byte*)Y_realloc(m_pBuffer, newBufferSize);
+  byte* pNewBuffer = (byte*)std::realloc(m_pBuffer, newBufferSize);
 
   // re-align pointers to new buffer
   DebugAssert(pNewBuffer != nullptr);
@@ -101,7 +101,7 @@ void CircularBuffer::MoveReadPointer(size_t byteCount)
 
   // walk all over the bytes - only in debug mode
 #ifdef Y_BUILD_CONFIG_DEBUG
-  Y_memset(m_pRegionAHead, 0xDE, byteCount);
+  std::memset(m_pRegionAHead, 0xDE, byteCount);
 #endif
 
   // move A's read pointer forward
@@ -203,7 +203,7 @@ bool CircularBuffer::Read(void* pDestination, size_t byteCount)
 
     // copy data
     size_t copyCount = Min(byteCount, availableBytes);
-    Y_memcpy(pDestinationPtr, pReadPointer, copyCount);
+    std::memcpy(pDestinationPtr, pReadPointer, copyCount);
     MoveReadPointer(copyCount);
     pDestinationPtr += copyCount;
     byteCount -= copyCount;
@@ -227,7 +227,7 @@ bool CircularBuffer::Write(const void* pSource, size_t byteCount)
 
     // copy data
     size_t copyCount = Min(byteCount, availableBytes);
-    Y_memcpy(pWritePointer, pSourcePtr, copyCount);
+    std::memcpy(pWritePointer, pSourcePtr, copyCount);
     MoveWritePointer(copyCount);
     pSourcePtr += copyCount;
     byteCount -= copyCount;

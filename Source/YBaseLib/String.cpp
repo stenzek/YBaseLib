@@ -13,7 +13,7 @@ static String::StringData* StringDataAllocate(uint32 allocSize)
   DebugAssert(allocSize > 0);
 
   String::StringData* pStringData =
-    reinterpret_cast<String::StringData*>(Y_malloc(sizeof(String::StringData) + allocSize));
+    reinterpret_cast<String::StringData*>(std::malloc(sizeof(String::StringData) + allocSize));
   pStringData->pBuffer = reinterpret_cast<char*>(pStringData + 1);
   pStringData->StringLength = 0;
   pStringData->BufferSize = allocSize;
@@ -46,7 +46,7 @@ static inline void StringDataRelease(String::StringData* pStringData)
   DebugAssert(pStringData->ReferenceCount > 0);
   uint32 newRefCount = Y_AtomicDecrement(pStringData->ReferenceCount);
   if (!newRefCount)
-    Y_free(pStringData);
+    std::free(pStringData);
 }
 
 static String::StringData* StringDataClone(const String::StringData* pStringData, uint32 newSize, bool copyPastString)
@@ -63,7 +63,7 @@ static String::StringData* StringDataClone(const String::StringData* pStringData
       copyLength = Min(newSize, pStringData->BufferSize);
       if (copyLength > 0)
       {
-        Y_memcpy(pClone->pBuffer, pStringData->pBuffer, copyLength);
+        std::memcpy(pClone->pBuffer, pStringData->pBuffer, copyLength);
         if (copyLength < pStringData->BufferSize)
           pClone->pBuffer[copyLength - 1] = 0;
       }
@@ -73,7 +73,7 @@ static String::StringData* StringDataClone(const String::StringData* pStringData
       copyLength = Min(newSize, pStringData->StringLength);
       if (copyLength > 0)
       {
-        Y_memcpy(pClone->pBuffer, pStringData->pBuffer, copyLength);
+        std::memcpy(pClone->pBuffer, pStringData->pBuffer, copyLength);
         pClone->pBuffer[copyLength] = 0;
       }
     }
@@ -90,7 +90,7 @@ static String::StringData* StringDataReallocate(String::StringData* pStringData,
   DebugAssert(pStringData->ReferenceCount == 1);
 
   // perform realloc
-  pStringData = reinterpret_cast<String::StringData*>(Y_realloc(pStringData, sizeof(String::StringData) + newSize));
+  pStringData = reinterpret_cast<String::StringData*>(std::realloc(pStringData, sizeof(String::StringData) + newSize));
   pStringData->pBuffer = reinterpret_cast<char*>(pStringData + 1);
 
   // zero bytes in debug
@@ -203,7 +203,7 @@ void String::InternalAppend(const char* pString, uint32 Length)
   DebugAssert((Length + m_pStringData->StringLength) < m_pStringData->BufferSize);
   DebugAssert(m_pStringData->ReferenceCount <= 1 && !m_pStringData->ReadOnly);
 
-  Y_memcpy(m_pStringData->pBuffer + m_pStringData->StringLength, pString, Length);
+  std::memcpy(m_pStringData->pBuffer + m_pStringData->StringLength, pString, Length);
   m_pStringData->StringLength += Length;
   m_pStringData->pBuffer[m_pStringData->StringLength] = 0;
 }
@@ -215,8 +215,8 @@ void String::InternalPrepend(const char* pString, uint32 Length)
   DebugAssert((Length + m_pStringData->StringLength) < m_pStringData->BufferSize);
   DebugAssert(m_pStringData->ReferenceCount <= 1 && !m_pStringData->ReadOnly);
 
-  Y_memmove(m_pStringData->pBuffer + Length, m_pStringData->pBuffer, m_pStringData->StringLength);
-  Y_memcpy(m_pStringData->pBuffer, pString, Length);
+  std::memmove(m_pStringData->pBuffer + Length, m_pStringData->pBuffer, m_pStringData->StringLength);
+  std::memcpy(m_pStringData->pBuffer, pString, Length);
   m_pStringData->StringLength += Length;
   m_pStringData->pBuffer[m_pStringData->StringLength] = 0;
 }
@@ -317,7 +317,7 @@ void String::AppendFormattedStringVA(const char* FormatString, va_list ArgPtr)
     if (ret < 0 || ((uint32)ret >= (currentBufferSize - 1)))
     {
       currentBufferSize *= 2;
-      pBuffer = pHeapBuffer = reinterpret_cast<char*>(Y_realloc(pHeapBuffer, currentBufferSize));
+      pBuffer = pHeapBuffer = reinterpret_cast<char*>(std::realloc(pHeapBuffer, currentBufferSize));
       continue;
     }
 
@@ -328,7 +328,7 @@ void String::AppendFormattedStringVA(const char* FormatString, va_list ArgPtr)
   InternalAppend(pBuffer, charsWritten);
 
   if (pHeapBuffer != NULL)
-    Y_free(pHeapBuffer);
+    std::free(pHeapBuffer);
 }
 
 void String::PrependCharacter(char c)
@@ -427,7 +427,7 @@ void String::PrependFormattedStringVA(const char* FormatString, va_list ArgPtr)
     if (ret < 0 || ((uint32)ret >= (currentBufferSize - 1)))
     {
       currentBufferSize *= 2;
-      pBuffer = pHeapBuffer = reinterpret_cast<char*>(Y_realloc(pHeapBuffer, currentBufferSize));
+      pBuffer = pHeapBuffer = reinterpret_cast<char*>(std::realloc(pHeapBuffer, currentBufferSize));
       continue;
     }
 
@@ -438,7 +438,7 @@ void String::PrependFormattedStringVA(const char* FormatString, va_list ArgPtr)
   InternalPrepend(pBuffer, charsWritten);
 
   if (pHeapBuffer != NULL)
-    Y_free(pHeapBuffer);
+    std::free(pHeapBuffer);
 }
 
 void String::InsertString(int32 offset, const String& appendStr)
@@ -469,11 +469,11 @@ void String::InsertString(int32 offset, const char* appendStr, uint32 appendStrL
   DebugAssert(realOffset <= m_pStringData->StringLength);
   uint32 charactersAfterOffset = m_pStringData->StringLength - realOffset;
   if (charactersAfterOffset > 0)
-    Y_memmove(m_pStringData->pBuffer + offset + appendStrLength, m_pStringData->pBuffer + offset,
+    std::memmove(m_pStringData->pBuffer + offset + appendStrLength, m_pStringData->pBuffer + offset,
               charactersAfterOffset);
 
   // insert the string
-  Y_memcpy(m_pStringData->pBuffer + realOffset, appendStr, appendStrLength);
+  std::memcpy(m_pStringData->pBuffer + realOffset, appendStr, appendStrLength);
   m_pStringData->StringLength += appendStrLength;
 
   // ensure null termination
@@ -741,7 +741,7 @@ void String::Resize(uint32 newSize, char fillerCharacter /* = ' ' */, bool skrin
     m_pStringData = pNewStringData;
 
     if (m_pStringData->StringLength < newSize)
-      Y_memset(m_pStringData->pBuffer + m_pStringData->StringLength, (byte)fillerCharacter,
+      std::memset(m_pStringData->pBuffer + m_pStringData->StringLength, (byte)fillerCharacter,
                m_pStringData->BufferSize - m_pStringData->StringLength - 1);
 
     m_pStringData->StringLength = newSize;
@@ -827,7 +827,7 @@ void String::Erase(int32 Offset, int32 Count /* = INT_MAX */)
     uint32 afterEraseBlock = m_pStringData->StringLength - realOffset - realCount;
     DebugAssert(afterEraseBlock > 0);
 
-    Y_memmove(m_pStringData->pBuffer + Offset, m_pStringData->pBuffer + realOffset + realCount, afterEraseBlock);
+    std::memmove(m_pStringData->pBuffer + Offset, m_pStringData->pBuffer + realOffset + realCount, afterEraseBlock);
     m_pStringData->StringLength = m_pStringData->StringLength - realCount;
 
 #if Y_BUILD_CONFIG_DEBUG

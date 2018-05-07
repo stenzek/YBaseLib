@@ -213,7 +213,7 @@ void TaskQueue::QueueTask(Task* pTask, uint32 taskSize)
 
   // write @TODO(this should be a template function calling copy operator..)
   void* task = FifoAllocateTask(taskSize, nullptr);
-  Y_memcpy(task, pTask, taskSize);
+  std::memcpy(task, pTask, taskSize);
 
   UnlockQueueForNewTask();
 }
@@ -232,7 +232,7 @@ void TaskQueue::QueueBlockingTask(Task* pTask, uint32 taskSize)
   // write @TODO(this should be a template function calling copy operator..)
   Barrier* barrier;
   void* task = FifoAllocateTask(taskSize, &barrier);
-  Y_memcpy(task, pTask, taskSize);
+  std::memcpy(task, pTask, taskSize);
 
   // unlock
   UnlockQueueForNewTask();

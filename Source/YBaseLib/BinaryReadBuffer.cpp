@@ -4,7 +4,7 @@
 
 BinaryReadBuffer::BinaryReadBuffer(uint32 size) : BinaryReader(nullptr)
 {
-  m_pMemory = (byte*)Y_malloc(size);
+  m_pMemory = (byte*)std::malloc(size);
   m_size = size;
 
   // override the BinaryWriter value

@@ -50,13 +50,13 @@ bool Platform::GetProgramFileName(String& destination)
   }
 
   int curSize = sizeof(stackBuffer) * 2;
-  char* buffer = (char*)Y_realloc(NULL, curSize);
+  char* buffer = (char*)std::realloc(NULL, curSize);
   for (;;)
   {
     len = readlink(exeFileName, buffer, curSize);
     if (len < 0)
     {
-      Y_free(buffer);
+      std::free(buffer);
       return false;
     }
     else if (len < curSize)
@@ -68,7 +68,7 @@ bool Platform::GetProgramFileName(String& destination)
     }
 
     curSize *= 2;
-    buffer = (char*)Y_realloc(buffer, curSize);
+    buffer = (char*)std::realloc(buffer, curSize);
   }
 
     /*
@@ -96,7 +96,7 @@ bool Platform::GetProgramFileName(String& destination)
 #elif defined(Y_PLATFORM_OSX)
 
   int curSize = FS_MAX_PATH;
-  char* buffer = (char*)Y_realloc(NULL, curSize + 1);
+  char* buffer = (char*)std::realloc(NULL, curSize + 1);
   for (;;)
   {
     uint32 nChars = FS_MAX_PATH - 1;
@@ -108,25 +108,25 @@ bool Platform::GetProgramFileName(String& destination)
       char* resolvedBuffer = realpath(buffer, NULL);
       if (resolvedBuffer == NULL)
       {
-        Y_free(buffer);
+        std::free(buffer);
         return false;
       }
 
       destination.Clear();
       destination.AppendString(resolvedBuffer);
       free(resolvedBuffer);
-      Y_free(buffer);
+      std::free(buffer);
       return true;
     }
 
     if (curSize >= 1048576)
     {
-      Y_free(buffer);
+      std::free(buffer);
       return false;
     }
 
     curSize *= 2;
-    buffer = (char*)Y_realloc(buffer, curSize + 1);
+    buffer = (char*)std::realloc(buffer, curSize + 1);
   }
 
 #else

@@ -333,10 +333,10 @@ private:                                                                        
 
 #define DeclareFastCopyable(ClassType)                                                                                 \
 public:                                                                                                                \
-  ClassType(const ClassType& _copy_) { Y_memcpy(this, &_copy_, sizeof(*this)); }                                       \
-  ClassType(const ClassType&& _copy_) { Y_memcpy(this, &_copy_, sizeof(*this)); }                                      \
-  ClassType& operator=(const ClassType& _copy_) { Y_memcpy(this, &_copy_, sizeof(*this)); }                            \
-  ClassType& operator=(const ClassType&& _copy_) { Y_memcpy(this, &_copy_, sizeof(*this)); }
+  ClassType(const ClassType& _copy_) { std::memcpy(this, &_copy_, sizeof(*this)); }                                       \
+  ClassType(const ClassType&& _copy_) { std::memcpy(this, &_copy_, sizeof(*this)); }                                      \
+  ClassType& operator=(const ClassType& _copy_) { std::memcpy(this, &_copy_, sizeof(*this)); }                            \
+  ClassType& operator=(const ClassType&& _copy_) { std::memcpy(this, &_copy_, sizeof(*this)); }
 
 #else
 #define DeclareNonCopyable(ClassType)                                                                                  \
@@ -346,7 +346,7 @@ private:                                                                        
 
 #define DeclareFastCopyable(ClassType)                                                                                 \
 public:                                                                                                                \
-  ClassType(const ClassType& _copy_) { Y_memcpy(this, &_copy_, sizeof(*this)); }                                       \
-  ClassType& operator=(const ClassType& _copy_) { Y_memcpy(this, &_copy_, sizeof(*this)); }
+  ClassType(const ClassType& _copy_) { std::memcpy(this, &_copy_, sizeof(*this)); }                                       \
+  ClassType& operator=(const ClassType& _copy_) { std::memcpy(this, &_copy_, sizeof(*this)); }
 
 #endif

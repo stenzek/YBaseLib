@@ -39,7 +39,7 @@ public:
     Resize(bits);
   }
 
-  ~BitSet() { Y_free(m_values); }
+  ~BitSet() { std::free(m_values); }
 
   TYPE* GetValuesPointer() { return m_values; }
   const TYPE* GetValuesPointer() const { return m_values; }
@@ -68,7 +68,7 @@ public:
     }
     else
     {
-      Y_free(m_values);
+      std::free(m_values);
       m_values = nullptr;
       m_valueCount = m_bitCount = 0;
     }
@@ -139,7 +139,7 @@ public:
 
     DebugAssert(m_valueCount == other.m_valueCount);
     if (m_valueCount > 0)
-      Y_memcpy(m_values, other.m_values, sizeof(TYPE) * m_valueCount);
+      std::memcpy(m_values, other.m_values, sizeof(TYPE) * m_valueCount);
   }
 
   void Swap(BitSet& other)

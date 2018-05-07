@@ -37,7 +37,7 @@ public:
     c.m_reserve = 0;
   }
 
-  ~MemArray() { Y_free(m_pElements); }
+  ~MemArray() { std::free(m_pElements); }
 
   void Clear()
   {
@@ -53,7 +53,7 @@ public:
     Reserve(c.m_reserve);
     m_size = c.m_size;
     if (m_size > 0)
-      Y_memcpy(m_pElements, c.m_pElements, sizeof(T) * m_size);
+      std::memcpy(m_pElements, c.m_pElements, sizeof(T) * m_size);
   }
 
   void Swap(MemArray<T>& c)
@@ -69,7 +69,7 @@ public:
       return;
 
     Clear();
-    Y_free(m_pElements);
+    std::free(m_pElements);
     m_pElements = NULL;
     m_reserve = 0;
   }
@@ -116,7 +116,7 @@ public:
     // if reserve > size, resize down to size
     if (m_size == 0)
     {
-      Y_free(m_pElements);
+      std::free(m_pElements);
       m_pElements = NULL;
       m_reserve = 0;
     }
@@ -134,7 +134,7 @@ public:
       Reserve(Max(m_size + 1, m_size * 2));
 
     // Y_memcpy(&m_pElements[m_uSize], &value, sizeof(T));
-    Y_memcpy(m_pElements + m_size, &value, sizeof(T));
+    std::memcpy(m_pElements + m_size, &value, sizeof(T));
     m_size++;
   }
 
@@ -157,7 +157,7 @@ public:
     if ((m_size + count) >= m_reserve)
       Reserve(Max(m_size + count, m_size * 2));
 
-    Y_memcpy(m_pElements + m_size, pValues, sizeof(T) * count);
+    std::memcpy(m_pElements + m_size, pValues, sizeof(T) * count);
     m_size += count;
   }
 
@@ -170,7 +170,7 @@ public:
   void RemoveFront()
   {
     DebugAssert(m_size > 0);
-    Y_memmove(m_pElements, m_pElements + 1, sizeof(T) * (m_size - 1));
+    std::memmove(m_pElements, m_pElements + 1, sizeof(T) * (m_size - 1));
     m_size--;
   }
 
@@ -185,7 +185,7 @@ public:
     DebugAssert(m_size > 0);
 
     if (pReturnValue != nullptr)
-      Y_memcpy(pReturnValue, &m_pElements[0], sizeof(T));
+      std::memcpy(pReturnValue, &m_pElements[0], sizeof(T));
 
     RemoveFront();
   }
@@ -195,7 +195,7 @@ public:
     DebugAssert(m_size > 0);
 
     if (pReturnValue != nullptr)
-      Y_memcpy(pReturnValue, &m_pElements[m_size - 1], sizeof(T));
+      std::memcpy(pReturnValue, &m_pElements[m_size - 1], sizeof(T));
 
     RemoveBack();
   }
@@ -212,7 +212,7 @@ public:
     else
     {
       // swap end and index elements
-      Y_memcpy(&m_pElements[index], &m_pElements[m_size - 1], sizeof(T));
+      std::memcpy(&m_pElements[index], &m_pElements[m_size - 1], sizeof(T));
       m_size--;
     }
   }
@@ -229,7 +229,7 @@ public:
     else
     {
       // loop and move everything from index+1 back one index
-      Y_memmove(m_pElements + index, m_pElements + index + 1, sizeof(T) * (m_size - index - 1));
+      std::memmove(m_pElements + index, m_pElements + index + 1, sizeof(T) * (m_size - index - 1));
       m_size--;
     }
   }
@@ -253,7 +253,7 @@ public:
     else
     {
       // move everything after first + count backwards
-      Y_memmove(m_pElements + first, m_pElements + first + count, sizeof(T) * (m_size - first - count));
+      std::memmove(m_pElements + first, m_pElements + first + count, sizeof(T) * (m_size - first - count));
       m_size -= count;
     }
   }
@@ -390,7 +390,7 @@ public:
     for (uint32 i = 0; i < m_size; i++)
     {
       // if (m_pElements[i] == item)
-      if (Y_memcmp(&m_pElements[i], &item, sizeof(T)) == 0)
+      if (std::memcmp(&m_pElements[i], &item, sizeof(T)) == 0)
         return (int32)i;
     }
     return -1;
@@ -417,10 +417,10 @@ public:
 
     // move everything forwards
     uint32 countAfter = m_size - index;
-    Y_memmove(m_pElements + index + 1, m_pElements + index, sizeof(T) * countAfter);
+    std::memmove(m_pElements + index + 1, m_pElements + index, sizeof(T) * countAfter);
 
     // insert into place
-    Y_memcpy(m_pElements + index, &item, sizeof(T));
+    std::memcpy(m_pElements + index, &item, sizeof(T));
   }
 
   // zero everything

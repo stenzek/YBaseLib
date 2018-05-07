@@ -40,13 +40,13 @@ bool Platform::GetProgramFileName(String& destination)
   }
 
   int curSize = sizeof(stackBuffer) * 2;
-  char* buffer = (char*)Y_realloc(NULL, curSize);
+  char* buffer = (char*)std::realloc(NULL, curSize);
   for (;;)
   {
     len = readlink(exeFileName, buffer, curSize);
     if (len < 0)
     {
-      Y_free(buffer);
+      std::free(buffer);
       return false;
     }
     else if (len < curSize)
@@ -58,7 +58,7 @@ bool Platform::GetProgramFileName(String& destination)
     }
 
     curSize *= 2;
-    buffer = (char*)Y_realloc(buffer, curSize);
+    buffer = (char*)std::realloc(buffer, curSize);
   }
 
   return false;

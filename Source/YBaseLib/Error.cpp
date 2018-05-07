@@ -11,7 +11,7 @@ Error::Error() : m_type(ERROR_TYPE_NONE)
 Error::Error(const Error& c)
 {
   m_type = c.m_type;
-  Y_memcpy(&m_error, &c.m_error, sizeof(m_error));
+  std::memcpy(&m_error, &c.m_error, sizeof(m_error));
   m_codeString.AppendString(c.m_codeString);
   m_message.AppendString(c.m_message);
 }
@@ -255,7 +255,7 @@ Error Error::CreateErrorHResult(HRESULT err)
 Error& Error::operator=(const Error& e)
 {
   m_type = e.m_type;
-  Y_memcpy(&m_error, &e.m_error, sizeof(m_error));
+  std::memcpy(&m_error, &e.m_error, sizeof(m_error));
   m_codeString.Clear();
   m_codeString.AppendString(e.m_codeString);
   m_message.Clear();

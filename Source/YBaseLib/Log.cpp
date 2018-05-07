@@ -346,9 +346,9 @@ void Log::Writev(const char* channelName, const char* functionName, LOGLEVEL lev
   }
   else
   {
-    char* buffer = (char*)Y_malloc(requiredSize + 1);
+    char* buffer = (char*)std::malloc(requiredSize + 1);
     Y_vsnprintf(buffer, requiredSize + 1, format, ap);
     ExecuteCallbacks(channelName, functionName, level, buffer);
-    Y_free(buffer);
+    std::free(buffer);
   }
 }

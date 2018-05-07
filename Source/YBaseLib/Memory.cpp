@@ -12,13 +12,6 @@
 #include <malloc.h>
 #endif
 
-static void MemoryAllocationFailedHandler(size_t request_size)
-{
-  char msg[128];
-  Y_snprintf(msg, countof(msg), "failed to allocate %u bytes of memory", (uint32)request_size);
-  Y_OnPanicReached(msg, __FUNCTION__, __FILE__, __LINE__);
-}
-
 static void MemoryAllocationOverflowHandler(size_t num, size_t size)
 {
   char msg[128];
@@ -33,29 +26,9 @@ static void MemoryAllocationOverflowHandler(size_t num, size_t size)
     MemoryAllocationOverflowHandler(num, size);                                                                        \
   MULTI_STATEMENT_MACRO_END
 
-void Y_memcpy(void* pDestination, const void* pSource, size_t ByteCount)
-{
-  memcpy(pDestination, pSource, ByteCount);
-}
-
-void Y_memmove(void* pDestination, const void* pSource, size_t ByteCount)
-{
-  memmove(pDestination, pSource, ByteCount);
-}
-
 void Y_memzero(void* pDestination, size_t ByteCount)
 {
   memset(pDestination, 0, ByteCount);
-}
-
-void Y_memset(void* pDestination, byte Value, size_t ByteCount)
-{
-  memset(pDestination, Value, ByteCount);
-}
-
-int32 Y_memcmp(const void* pMem1, const void* pMem2, size_t ByteCount)
-{
-  return memcmp(pMem1, pMem2, ByteCount);
 }
 
 void Y_memcpy_stride(void* pDestination, size_t DestinationStride, const void* pSource, size_t SourceStride,
@@ -67,7 +40,7 @@ void Y_memcpy_stride(void* pDestination, size_t DestinationStride, const void* p
 
   for (size_t i = 0; i < Count; i++)
   {
-    Y_memcpy(pByteDestination, pByteSource, Size);
+    std::memcpy(pByteDestination, pByteSource, Size);
     pByteSource += SourceStride;
     pByteDestination += DestinationStride;
   }
@@ -93,63 +66,38 @@ int32 Y_memcmp_stride(const void* pMem1, size_t mem1Stride, const void* pMem2, s
   return 0;
 }
 
-void* Y_malloc(size_t size)
-{
-  void* ptr = malloc(size);
-  if (ptr == nullptr)
-    MemoryAllocationFailedHandler(size);
-
-  return ptr;
-}
-
 void* Y_malloczero(size_t size)
 {
-  void* ptr = Y_malloc(size);
-  Y_memzero(ptr, size);
+  void* ptr = std::malloc(size);
+  if (ptr != nullptr)
+    Y_memzero(ptr, size);
   return ptr;
 }
 
 void* Y_mallocarray(size_t num, size_t size)
 {
   REQUEST_SIZE_OVERFLOW_CHECK(num, size);
-  return Y_malloc(num * size);
-}
-
-void* Y_realloc(void* ptr, size_t size)
-{
-  void* new_ptr = realloc(ptr, size);
-  if (new_ptr == nullptr)
-    MemoryAllocationFailedHandler(size);
-
-  return new_ptr;
+  return std::malloc(num * size);
 }
 
 void* Y_reallocarray(void* ptr, size_t num, size_t size)
 {
   REQUEST_SIZE_OVERFLOW_CHECK(num, size);
-  return Y_realloc(ptr, num * size);
-}
-
-void Y_free(void* ptr)
-{
-  free(ptr);
+  return std::realloc(ptr, num * size);
 }
 
 #if defined(Y_COMPILER_MSVC)
 
 void* Y_aligned_malloc(size_t size, size_t alignment)
 {
-  void* ptr = _aligned_malloc(size, alignment);
-  if (ptr == nullptr)
-    MemoryAllocationFailedHandler(size);
-
-  return ptr;
+  return _aligned_malloc(size, alignment);
 }
 
 void* Y_aligned_malloczero(size_t size, size_t alignment)
 {
-  void* ptr = Y_aligned_malloc(size, alignment);
-  Y_memzero(ptr, size);
+  void* ptr = _aligned_malloc(size, alignment);
+  if (ptr != nullptr)
+    Y_memzero(ptr, size);
   return ptr;
 }
 
@@ -161,17 +109,13 @@ void* Y_aligned_mallocarray(size_t num, size_t size, size_t alignment)
 
 void* Y_aligned_realloc(void* ptr, size_t size, size_t alignment)
 {
-  void* new_ptr = _aligned_realloc(ptr, size, alignment);
-  if (new_ptr == nullptr)
-    MemoryAllocationFailedHandler(size);
-
-  return new_ptr;
+  return _aligned_realloc(ptr, size, alignment);
 }
 
 void* Y_aligned_reallocarray(void* ptr, size_t num, size_t size, size_t alignment)
 {
   REQUEST_SIZE_OVERFLOW_CHECK(num, size);
-  return Y_aligned_realloc(ptr, num * size, alignment);
+  return _aligned_realloc(ptr, num * size, alignment);
 }
 
 void Y_aligned_free(void* ptr)
@@ -183,17 +127,14 @@ void Y_aligned_free(void* ptr)
 
 void* Y_aligned_malloc(size_t size, size_t alignment)
 {
-  void* ptr = memalign(alignment, size);
-  if (ptr == nullptr)
-    MemoryAllocationFailedHandler(size);
-
-  return ptr;
+  return memalign(alignment, size);
 }
 
 void* Y_aligned_malloczero(size_t size, size_t alignment)
 {
-  void* ptr = Y_aligned_malloc(alignment, size);
-  Y_memzero(ptr, size);
+  void* ptr = memalign(alignment, size);
+  if (ptr != nullptr)
+    Y_memzero(ptr, size);
   return ptr;
 }
 
@@ -206,19 +147,16 @@ void* Y_aligned_mallocarray(size_t num, size_t size, size_t alignment)
 void* Y_aligned_realloc(void* ptr, size_t size, size_t alignment)
 {
   void* new_ptr = memalign(size, alignment);
-  if (new_ptr == nullptr)
-    MemoryAllocationFailedHandler(size);
-
-  if (ptr != nullptr)
+  if (new_ptr != nullptr && ptr != nullptr)
   {
     size_t copy_size = malloc_usable_size(ptr);
     if (copy_size > 0)
-      memcpy(new_ptr, ptr, copy_size);
+      std::memcpy(new_ptr, ptr, copy_size);
 
-    free(ptr);
+    std::free(ptr);
   }
 
-  return ptr;
+  return new_ptr;
 }
 
 void* Y_aligned_reallocarray(void* ptr, size_t num, size_t size, size_t alignment)
@@ -229,26 +167,24 @@ void* Y_aligned_reallocarray(void* ptr, size_t num, size_t size, size_t alignmen
 
 void Y_aligned_free(void* ptr)
 {
-  free(ptr);
+  std::free(ptr);
 }
 
 #elif defined(Y_PLATFORM_OSX)
 
 void* Y_aligned_malloc(size_t size, size_t alignment)
 {
+  // OSX guarantees 16 byte alignment.
   DebugAssert(alignment <= 16);
-  void* ptr = malloc(size);
-  if (ptr == nullptr)
-    MemoryAllocationFailedHandler(size);
-
-  return ptr;
+  return std::malloc(size);
 }
 
 void* Y_aligned_malloczero(size_t size, size_t alignment)
 {
   DebugAssert(alignment <= 16);
   void* ptr = Y_aligned_malloc(alignment);
-  Y_memzero(ptr, size);
+  if (ptr != nullptr)
+    Y_memzero(ptr, size);
   return ptr;
 }
 
@@ -261,11 +197,7 @@ void* Y_aligned_mallocarray(size_t num, size_t size, size_t alignment)
 void* Y_aligned_realloc(void* ptr, size_t size, size_t alignment)
 {
   DebugAssert(alignment <= 16);
-  void* new_ptr = realloc(ptr, size, alignment);
-  if (new_ptr == nullptr)
-    MemoryAllocationFailedHandler(size);
-
-  return ptr;
+  return std::realloc(ptr, size, alignment);
 }
 
 void* Y_aligned_reallocarray(void* ptr, size_t num, size_t size, size_t alignment)
@@ -276,7 +208,7 @@ void* Y_aligned_reallocarray(void* ptr, size_t num, size_t size, size_t alignmen
 
 void Y_aligned_free(void* ptr)
 {
-  free(ptr);
+  std::free(ptr);
 }
 
 #endif

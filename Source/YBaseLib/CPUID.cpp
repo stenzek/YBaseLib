@@ -260,5 +260,5 @@ void Y_ReadCPUID(Y_CPUID_RESULT* pResult)
     CachedResultFilled = true;
   }
 
-  Y_memcpy(pResult, &CachedResult, sizeof(CachedResult));
+  std::memcpy(pResult, &CachedResult, sizeof(CachedResult));
 }

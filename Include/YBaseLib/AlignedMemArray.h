@@ -45,7 +45,7 @@ public:
     Reserve(c.m_uReserve);
     m_uSize = c.m_uSize;
     if (m_uSize > 0)
-      Y_memcpy(m_pElements, c.m_pElements, sizeof(T) * m_uSize);
+      std::memcpy(m_pElements, c.m_pElements, sizeof(T) * m_uSize);
   }
 
   void Swap(AlignedMemArray& c)
@@ -84,7 +84,7 @@ public:
       T* pNewElements = (T*)Y_aligned_malloc(sizeof(T) * nElements, ALIGNMENT);
       Assert(pNewElements != NULL);
       if (m_uSize > 0)
-        Y_memcpy(pNewElements, m_pElements, sizeof(T) * m_uSize);
+        std::memcpy(pNewElements, m_pElements, sizeof(T) * m_uSize);
 
       Y_aligned_free(m_pElements);
       m_pElements = pNewElements;
@@ -130,7 +130,7 @@ public:
       // m_pElements = (T *)Y_aligned_realloc(m_pElements, SIZEOF_T * m_uSize, ALIGNMENT);
       T* pNewElements = (T*)Y_aligned_malloc(sizeof(T) * m_uSize, ALIGNMENT);
       Assert(pNewElements != NULL);
-      Y_memcpy(pNewElements, m_pElements, sizeof(T) * m_uSize);
+      std::memcpy(pNewElements, m_pElements, sizeof(T) * m_uSize);
       Y_aligned_free(m_pElements);
       m_pElements = pNewElements;
       m_uReserve = m_uSize;
@@ -143,7 +143,7 @@ public:
     if (m_uSize == m_uReserve)
       Reserve(Max(m_uSize + 1, m_uSize * 2));
 
-    Y_memcpy(m_pElements + m_uSize, &value, sizeof(T));
+    std::memcpy(m_pElements + m_uSize, &value, sizeof(T));
     m_uSize++;
   }
 
@@ -166,7 +166,7 @@ public:
     else
     {
       // swap end and index elements
-      Y_memcpy(&m_pElements[index], &m_pElements[m_uSize - 1], sizeof(T));
+      std::memcpy(&m_pElements[index], &m_pElements[m_uSize - 1], sizeof(T));
       m_uSize--;
     }
   }
@@ -183,7 +183,7 @@ public:
     else
     {
       // loop and move everything from index+1 back one index
-      Y_memmove(m_pElements + index, m_pElements + index + 1, sizeof(T) * (m_uSize - index - 1));
+      std::memmove(m_pElements + index, m_pElements + index + 1, sizeof(T) * (m_uSize - index - 1));
       m_uSize--;
     }
   }

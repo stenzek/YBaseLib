@@ -1,31 +1,17 @@
 #pragma once
 
 #include "YBaseLib/Common.h"
+#include <cstdlib>
 
-void Y_memcpy(void* pDestination, const void* pSource, size_t ByteCount);
-void Y_memmove(void* pDestination, const void* pSource, size_t ByteCount);
 void Y_memzero(void* pDestination, size_t ByteCount);
-void Y_memset(void* pDestination, byte Value, size_t ByteCount);
-int32 Y_memcmp(const void* pMem1, const void* pMem2, size_t ByteCount);
-
 void Y_memcpy_stride(void* pDestination, size_t DestinationStride, const void* pSource, size_t SourceStride,
                      size_t Size, size_t Count);
 int32 Y_memcmp_stride(const void* pMem1, size_t mem1Stride, const void* pMem2, size_t mem2Stride, size_t elementSize,
                       size_t count);
 
-// by default malloc is safe, ie will not return null.
-void* Y_malloc(size_t size);
 void* Y_malloczero(size_t size);
 void* Y_mallocarray(size_t num, size_t size);
-void* Y_realloc(void* ptr, size_t cbNewSize);
 void* Y_reallocarray(void* ptr, size_t num, size_t size);
-void Y_free(void* ptr);
-
-// unsafe malloc variants
-void* Y_unsafe_malloc(size_t size);
-void* Y_unsafe_mallocarray(size_t size);
-void* Y_unsafe_realloc(void* ptr, size_t newsize);
-void* Y_unsafe_reallocarray(void* ptr, size_t num, size_t size);
 
 // aligned malloc variants
 void* Y_aligned_malloc(size_t size, size_t alignment);
@@ -60,12 +46,12 @@ uint32 Y_popcnt(uint64 value);
 template<typename T>
 void Y_memcpyT(T* pDestination, const T* pSource, size_t uCount)
 {
-  Y_memcpy(pDestination, pSource, uCount * sizeof(T));
+  std::memcpy(pDestination, pSource, uCount * sizeof(T));
 }
 template<typename T>
 void Y_memmoveT(T* pDestination, const T* pSource, size_t uCount)
 {
-  Y_memmove(pDestination, pSource, uCount * sizeof(T));
+  std::memmove(pDestination, pSource, uCount * sizeof(T));
 }
 template<typename T>
 void Y_memzeroT(T* pDestination, uint32 uCount)
@@ -77,7 +63,7 @@ void Y_memzeroT(T* pDestination, uint32 uCount)
 template<typename T>
 T* Y_mallocT(size_t nCount = 1)
 {
-  return (T*)Y_malloc(sizeof(T) * nCount);
+  return (T*)std::malloc(sizeof(T) * nCount);
 }
 template<typename T>
 T* Y_malloczeroT(size_t nCount = 1)
@@ -87,7 +73,7 @@ T* Y_malloczeroT(size_t nCount = 1)
 template<typename T>
 T* Y_reallocT(T* pMemory, size_t nNewCount)
 {
-  return (T*)Y_realloc(pMemory, sizeof(T) * nNewCount);
+  return (T*)std::realloc(pMemory, sizeof(T) * nNewCount);
 }
 template<typename T>
 T* Y_aligned_mallocT(size_t nCount, size_t uAlignment)

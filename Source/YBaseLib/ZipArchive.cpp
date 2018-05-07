@@ -79,7 +79,7 @@ public:
       m_currentFileOffset(baseOffset), m_inBufferBytes(0), m_inBufferPosition(0), m_currentDecompressedOffset(0),
       m_currentCRC32(0)
   {
-    Y_memcpy(&m_localFileHeader, pLocalFileHeader, sizeof(m_localFileHeader));
+    std::memcpy(&m_localFileHeader, pLocalFileHeader, sizeof(m_localFileHeader));
 
     switch (m_localFileHeader.CompressionMethod)
     {
@@ -162,7 +162,7 @@ public:
           }
 
           uint32 copyLength = Min(remaining, m_inBufferBytes - m_inBufferPosition);
-          Y_memcpy(pCurrentPtr, m_pInBuffer + m_inBufferPosition, copyLength);
+          std::memcpy(pCurrentPtr, m_pInBuffer + m_inBufferPosition, copyLength);
           m_currentCRC32 = crc32(m_currentCRC32, pCurrentPtr, copyLength);
           m_currentDecompressedOffset += (uint64)copyLength;
           m_inBufferPosition += copyLength;
@@ -479,7 +479,7 @@ public:
 
     if (sz > 0)
     {
-      Y_memcpy(pDestination, m_pData + m_position, sz);
+      std::memcpy(pDestination, m_pData + m_position, sz);
       m_position += sz;
     }
 
@@ -778,7 +778,7 @@ public:
             break;
 
           uint32 copyLength = Min(remaining, uint32(sizeof(m_pOutBuffer) - m_outBufferBytes));
-          Y_memcpy(m_pOutBuffer + m_outBufferBytes, pCurrentPtr, copyLength);
+          std::memcpy(m_pOutBuffer + m_outBufferBytes, pCurrentPtr, copyLength);
           m_currentCRC32 = crc32(m_currentCRC32, pCurrentPtr, copyLength);
           pCurrentPtr += copyLength;
           remaining -= copyLength;
@@ -940,7 +940,7 @@ public:
     }
 
     if (m_pMemory != NULL)
-      Y_free(m_pMemory);
+      std::free(m_pMemory);
 
     m_pFileEntry->WriteOpenCount--;
   }
@@ -1126,7 +1126,7 @@ public:
 
     if (sz > 0)
     {
-      Y_memcpy(pDestination, m_pMemory + m_position, sz);
+      std::memcpy(pDestination, m_pMemory + m_position, sz);
       m_position += sz;
     }
 
@@ -1157,7 +1157,7 @@ public:
     if ((m_position + ByteCount) > m_memorySize)
       Grow(ByteCount);
 
-    Y_memcpy(m_pMemory + m_position, pSource, ByteCount);
+    std::memcpy(m_pMemory + m_position, pSource, ByteCount);
     m_position += ByteCount;
     m_size = Max(m_size, m_position);
     return ByteCount;
@@ -1214,13 +1214,13 @@ private:
     uint32 newSize = Max(m_memorySize + minimumGrowth, m_memorySize * 2);
     if (m_pMemory == NULL)
     {
-      m_pMemory = (byte*)Y_malloc(newSize);
-      Y_memcpy(m_pMemory, m_pMemory, m_size);
+      m_pMemory = (byte*)std::malloc(newSize);
+      std::memcpy(m_pMemory, m_pMemory, m_size);
       m_memorySize = newSize;
     }
     else
     {
-      m_pMemory = (byte*)Y_realloc(m_pMemory, newSize);
+      m_pMemory = (byte*)std::realloc(m_pMemory, newSize);
       m_memorySize = newSize;
     }
   }

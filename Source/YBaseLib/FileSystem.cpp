@@ -230,7 +230,7 @@ void FileSystem::BuildPathRelativeToFile(char* Destination, uint32 cbDestination
 
       if (copyLen > 0)
       {
-        Y_memcpy(Destination, CurrentFileName, copyLen);
+        std::memcpy(Destination, CurrentFileName, copyLen);
         if (copyLen == cbDestination)
           Destination[cbDestination - 1] = '\0';
 

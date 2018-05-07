@@ -28,9 +28,9 @@ Timestamp::Timestamp()
 Timestamp::Timestamp(const Timestamp& copy)
 {
 #if defined(Y_PLATFORM_WINDOWS)
-  Y_memcpy(&m_value, &copy.m_value, sizeof(m_value));
+  std::memcpy(&m_value, &copy.m_value, sizeof(m_value));
 #elif defined(Y_PLATFORM_POSIX) || defined(Y_PLATFORM_HTML5) || defined(Y_PLATFORM_ANDROID)
-  Y_memcpy(&m_value, &copy.m_value, sizeof(m_value));
+  std::memcpy(&m_value, &copy.m_value, sizeof(m_value));
 #endif
 }
 
@@ -207,18 +207,18 @@ Timestamp Timestamp::FromExpandedTime(const ExpandedTime& value)
 bool Timestamp::operator==(const Timestamp& other) const
 {
 #if defined(Y_PLATFORM_WINDOWS)
-  return Y_memcmp(&m_value, &other.m_value, sizeof(m_value)) == 0;
+  return std::memcmp(&m_value, &other.m_value, sizeof(m_value)) == 0;
 #elif defined(Y_PLATFORM_POSIX) || defined(Y_PLATFORM_HTML5) || defined(Y_PLATFORM_ANDROID)
-  return Y_memcmp(&m_value, &other.m_value, sizeof(m_value)) == 0;
+  return std::memcmp(&m_value, &other.m_value, sizeof(m_value)) == 0;
 #endif
 }
 
 bool Timestamp::operator!=(const Timestamp& other) const
 {
 #if defined(Y_PLATFORM_WINDOWS)
-  return Y_memcmp(&m_value, &other.m_value, sizeof(m_value)) != 0;
+  return std::memcmp(&m_value, &other.m_value, sizeof(m_value)) != 0;
 #elif defined(Y_PLATFORM_POSIX) || defined(Y_PLATFORM_HTML5) || defined(Y_PLATFORM_ANDROID)
-  return Y_memcmp(&m_value, &other.m_value, sizeof(m_value)) != 0;
+  return std::memcmp(&m_value, &other.m_value, sizeof(m_value)) != 0;
 #endif
 }
 
@@ -457,9 +457,9 @@ bool Timestamp::operator>=(const Timestamp& other) const
 Timestamp& Timestamp::operator=(const Timestamp& other)
 {
 #if defined(Y_PLATFORM_WINDOWS)
-  Y_memcpy(&m_value, &other.m_value, sizeof(m_value));
+  std::memcpy(&m_value, &other.m_value, sizeof(m_value));
 #elif defined(Y_PLATFORM_POSIX) || defined(Y_PLATFORM_HTML5) || defined(Y_PLATFORM_ANDROID)
-  Y_memcpy(&m_value, &other.m_value, sizeof(m_value));
+  std::memcpy(&m_value, &other.m_value, sizeof(m_value));
 #endif
 
   return *this;

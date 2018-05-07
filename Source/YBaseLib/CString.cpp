@@ -16,7 +16,7 @@
 char* Y_strdup(const char* Str)
 {
   size_t len = strlen(Str);
-  char* pNewStr = (char*)Y_malloc(len + 1);
+  char* pNewStr = (char*)std::malloc(len + 1);
   memcpy(pNewStr, Str, len + 1);
   return pNewStr;
 }
@@ -260,12 +260,12 @@ char* Y_substr(char* Destination, uint32 cbDestination, const char* Source, int3
   uint32 copylen = uint32(end - start);
   if (copylen >= cbDestination)
   {
-    Y_memcpy(Destination, start, cbDestination);
+    std::memcpy(Destination, start, cbDestination);
     Destination[cbDestination - 1] = '\0';
   }
   else
   {
-    Y_memcpy(Destination, start, copylen);
+    std::memcpy(Destination, start, copylen);
     Destination[copylen] = '\0';
   }
 
@@ -428,7 +428,7 @@ uint32 Y_strlstrip(char* Str, const char* StripCharacters)
   {
     // Remove the characters from the front using memmove, then zero out the remaining characters.
     Length -= StartNumSkip;
-    Y_memmove(Str, Str + StartNumSkip, Length);
+    std::memmove(Str, Str + StartNumSkip, Length);
 #if Y_BUILD_CONFIG_DEBUG
     Y_memzero(Str + Length, StartNumSkip);
 #else
@@ -529,7 +529,7 @@ uint32 Y_strstrip(char* Str, const char* StripCharacters)
   {
     // Remove the characters from the front using memmove, then zero out the remaining characters.
     Length -= StartNumSkip;
-    Y_memmove(Str, Str + StartNumSkip, Length);
+    std::memmove(Str, Str + StartNumSkip, Length);
 #if Y_BUILD_CONFIG_DEBUG
     Y_memzero(Str + Length, StartNumSkip);
 #else

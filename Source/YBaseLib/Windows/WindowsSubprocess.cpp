@@ -201,7 +201,7 @@ Subprocess* Subprocess::Create(const char* executableFileName, const char* param
                         &pi))
     {
       Log_ErrorPrint("Subprocess::Create: CreateProcessA failed.");
-      Y_free(targetEnvironmentString);
+      std::free(targetEnvironmentString);
       CloseHandle(hWritePipeWriteEnd);
       CloseHandle(hWritePipeReadEnd);
       CloseHandle(hReadPipeWriteEnd);
@@ -211,7 +211,7 @@ Subprocess* Subprocess::Create(const char* executableFileName, const char* param
     }
 
     // Remove the inherit flags on the pipes, and close the ends we don't need
-    Y_free(targetEnvironmentString);
+    std::free(targetEnvironmentString);
     SetHandleInformation(hQuitEvent, HANDLE_FLAG_INHERIT, 0);
     SetHandleInformation(hReadPipeWriteEnd, HANDLE_FLAG_INHERIT, 0);
     SetHandleInformation(hWritePipeReadEnd, HANDLE_FLAG_INHERIT, 0);
