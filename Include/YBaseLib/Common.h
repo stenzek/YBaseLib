@@ -327,26 +327,63 @@ static inline void Swap(T& rt1, T& rt2)
 // helper to make a class non-copyable
 #if 1 // C++11
 #define DeclareNonCopyable(ClassType)                                                                                  \
+  \
 private:                                                                                                               \
   ClassType(const ClassType&) = delete;                                                                                \
   ClassType& operator=(const ClassType&) = delete;
 
 #define DeclareFastCopyable(ClassType)                                                                                 \
+  \
 public:                                                                                                                \
-  ClassType(const ClassType& _copy_) { std::memcpy(this, &_copy_, sizeof(*this)); }                                       \
-  ClassType(const ClassType&& _copy_) { std::memcpy(this, &_copy_, sizeof(*this)); }                                      \
-  ClassType& operator=(const ClassType& _copy_) { std::memcpy(this, &_copy_, sizeof(*this)); }                            \
+  ClassType(const ClassType& _copy_) { std::memcpy(this, &_copy_, sizeof(*this)); }                                    \
+  ClassType(const ClassType&& _copy_) { std::memcpy(this, &_copy_, sizeof(*this)); }                                   \
+  ClassType& operator=(const ClassType& _copy_) { std::memcpy(this, &_copy_, sizeof(*this)); }                         \
   ClassType& operator=(const ClassType&& _copy_) { std::memcpy(this, &_copy_, sizeof(*this)); }
 
 #else
 #define DeclareNonCopyable(ClassType)                                                                                  \
+  \
 private:                                                                                                               \
   ClassType(const ClassType&);                                                                                         \
   ClassType& operator=(const ClassType&);
 
 #define DeclareFastCopyable(ClassType)                                                                                 \
+  \
 public:                                                                                                                \
-  ClassType(const ClassType& _copy_) { std::memcpy(this, &_copy_, sizeof(*this)); }                                       \
+  ClassType(const ClassType& _copy_) { std::memcpy(this, &_copy_, sizeof(*this)); }                                    \
   ClassType& operator=(const ClassType& _copy_) { std::memcpy(this, &_copy_, sizeof(*this)); }
 
 #endif
+
+namespace Common {
+template<typename T>
+bool IsAligned(T value, unsigned int alignment)
+{
+  return (value % static_cast<T>(alignment)) == 0;
+}
+template<typename T>
+T AlignUp(T value, unsigned int alignment)
+{
+  return (value + static_cast<T>(alignment - 1)) / static_cast<T>(alignment) * static_cast<T>(alignment);
+}
+template<typename T>
+T AlignDown(T value, unsigned int alignment)
+{
+  return value / static_cast<T>(alignment) * static_cast<T>(alignment);
+}
+template<typename T>
+bool IsAlignedPow2(T value, unsigned int alignment)
+{
+  return (value & static_cast<T>(alignment - 1)) == 0;
+}
+template<typename T>
+T AlignUpPow2(T value, unsigned int alignment)
+{
+  return (value + static_cast<T>(alignment - 1)) & static_cast<T>(~static_cast<T>(alignment - 1));
+}
+template<typename T>
+T AlignDownPow2(T value, unsigned int alignment)
+{
+  return value & static_cast<T>(~static_cast<T>(alignment - 1));
+}
+} // namespace Common
