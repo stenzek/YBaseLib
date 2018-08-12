@@ -2,11 +2,6 @@
 #include "YBaseLib/Common.h"
 #include "YBaseLib/String.h"
 
-// Platform-specific includes
-#if defined(Y_PLATFORM_WINDOWS)
-#include "YBaseLib/Windows/WindowsHeaders.h"
-#endif
-
 enum ERROR_TYPE
 {
   ERROR_TYPE_NONE = 0,   // Set by default constructor, returns 'No Error'.
@@ -32,8 +27,8 @@ public:
   int GetErrorCodeSocket() const;
   int32 GetErrorCodeUser() const;
 #ifdef Y_PLATFORM_WINDOWS
-  DWORD GetErrorCodeWin32() const;
-  HRESULT GetErrorCodeHResult() const;
+  unsigned long GetErrorCodeWin32() const;
+  long GetErrorCodeHResult() const;
 #endif
 
   // setter functions
@@ -45,8 +40,8 @@ public:
   void SetErrorUserFormatted(int32 err, const char* format, ...);
   void SetErrorUserFormatted(const char* code, const char* format, ...);
 #ifdef Y_PLATFORM_WINDOWS
-  void SetErrorCodeWin32(DWORD err);
-  void SetErrorCodeHResult(HRESULT err);
+  void SetErrorCodeWin32(unsigned long err);
+  void SetErrorCodeHResult(long err);
 #endif
 
   // constructors
@@ -58,8 +53,8 @@ public:
   static Error CreateErrorUserFormatted(int32 err, const char* format, ...);
   static Error CreateErrorUserFormatted(const char* code, const char* format, ...);
 #ifdef Y_PLATFORM_WINDOWS
-  static Error CreateErrorWin32(DWORD err);
-  static Error CreateErrorHResult(HRESULT err);
+  static Error CreateErrorWin32(unsigned long err);
+  static Error CreateErrorHResult(long err);
 #endif
 
   // get code, e.g. "0x00000002"
@@ -87,8 +82,8 @@ private:
     int32 user;
     uint32 external;
 #ifdef Y_PLATFORM_WINDOWS
-    DWORD win32;
-    HRESULT hresult;
+    unsigned long win32;
+    long hresult;
 #endif
   } m_error;
   TinyString m_codeString;

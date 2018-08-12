@@ -1,7 +1,17 @@
 #include "YBaseLib/Error.h"
 #include "YBaseLib/CString.h"
+
+// Platform-specific includes
+#if defined(Y_PLATFORM_WINDOWS)
+#include "YBaseLib/Windows/WindowsHeaders.h"
+#endif
+
 #include <cstdlib>
 #include <cstring>
+#include <type_traits>
+
+static_assert(std::is_same<DWORD, unsigned long>::value, "DWORD is unsigned long");
+static_assert(std::is_same<HRESULT, long>::value, "HRESULT is long");
 
 Error::Error() : m_type(ERROR_TYPE_NONE)
 {
@@ -39,12 +49,12 @@ int32 Error::GetErrorCodeUser() const
 }
 
 #ifdef Y_PLATFORM_WINDOWS
-DWORD Error::GetErrorCodeWin32() const
+unsigned long Error::GetErrorCodeWin32() const
 {
   return m_error.win32;
 }
 
-HRESULT Error::GetErrorCodeHResult() const
+long Error::GetErrorCodeHResult() const
 {
   return m_error.hresult;
 }
@@ -125,7 +135,7 @@ void Error::SetErrorUserFormatted(const char* code, const char* format, ...)
 
 #ifdef Y_PLATFORM_WINDOWS
 
-void Error::SetErrorCodeWin32(DWORD err)
+void Error::SetErrorCodeWin32(unsigned long err)
 {
   m_type = ERROR_TYPE_WIN32;
   m_error.win32 = err;
@@ -145,7 +155,7 @@ void Error::SetErrorCodeWin32(DWORD err)
   }
 }
 
-void Error::SetErrorCodeHResult(HRESULT err)
+void Error::SetErrorCodeHResult(long err)
 {
   m_type = ERROR_TYPE_HRESULT;
   m_error.win32 = err;
@@ -236,14 +246,14 @@ Error Error::CreateErrorUserFormatted(const char* code, const char* format, ...)
 }
 
 #ifdef Y_PLATFORM_WINDOWS
-Error Error::CreateErrorWin32(DWORD err)
+Error Error::CreateErrorWin32(unsigned long err)
 {
   Error ret;
   ret.SetErrorCodeWin32(err);
   return ret;
 }
 
-Error Error::CreateErrorHResult(HRESULT err)
+Error Error::CreateErrorHResult(long err)
 {
   Error ret;
   ret.SetErrorCodeHResult(err);

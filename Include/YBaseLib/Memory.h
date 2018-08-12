@@ -101,6 +101,7 @@ const T* Y_bsearchT(const K* pKey, const T* pBase, size_t nElements, int (*Compa
 
 // macro for defining an aligned class
 #define DECLARE_ALIGNED_ALLOCATOR(Alignment)                                                                           \
+  \
 public:                                                                                                                \
   void* operator new[](size_t c) { return Y_aligned_malloc(c, Alignment); }                                            \
   void* operator new(size_t c) { return Y_aligned_malloc(c, Alignment); }                                              \

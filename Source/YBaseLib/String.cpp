@@ -470,7 +470,7 @@ void String::InsertString(int32 offset, const char* appendStr, uint32 appendStrL
   uint32 charactersAfterOffset = m_pStringData->StringLength - realOffset;
   if (charactersAfterOffset > 0)
     std::memmove(m_pStringData->pBuffer + offset + appendStrLength, m_pStringData->pBuffer + offset,
-              charactersAfterOffset);
+                 charactersAfterOffset);
 
   // insert the string
   std::memcpy(m_pStringData->pBuffer + realOffset, appendStr, appendStrLength);
@@ -742,7 +742,7 @@ void String::Resize(uint32 newSize, char fillerCharacter /* = ' ' */, bool skrin
 
     if (m_pStringData->StringLength < newSize)
       std::memset(m_pStringData->pBuffer + m_pStringData->StringLength, (byte)fillerCharacter,
-               m_pStringData->BufferSize - m_pStringData->StringLength - 1);
+                  m_pStringData->BufferSize - m_pStringData->StringLength - 1);
 
     m_pStringData->StringLength = newSize;
   }

@@ -21,6 +21,7 @@ private:
 };
 
 #define DECLARE_EXCEPTION(Name)                                                                                        \
+  \
 public:                                                                                                                \
   const char* GetTypeName() const { return #Name; }
 
