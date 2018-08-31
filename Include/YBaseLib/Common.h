@@ -386,4 +386,9 @@ T AlignDownPow2(T value, unsigned int alignment)
 {
   return value & static_cast<T>(~static_cast<T>(alignment - 1));
 }
+template<typename T>
+bool IsPow2(T value)
+{
+  return (value & (value - 1)) == 0;
+}
 } // namespace Common
