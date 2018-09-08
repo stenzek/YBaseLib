@@ -107,6 +107,7 @@
     <ClInclude Include="..\Include\YBaseLib\Android\AndroidMutex.h" />
     <ClInclude Include="..\Include\YBaseLib\Android\AndroidReadWriteLock.h" />
     <ClInclude Include="..\Include\YBaseLib\Android\AndroidRecursiveMutex.h" />
+    <ClInclude Include="..\Include\YBaseLib\Android\AndroidSemaphore.h" />
     <ClInclude Include="..\Include\YBaseLib\Android\AndroidThread.h" />
     <ClInclude Include="..\Include\YBaseLib\Array.h" />
     <ClInclude Include="..\Include\YBaseLib\Assert.h" />
@@ -142,6 +143,7 @@
     <ClInclude Include="..\Include\YBaseLib\HTML5\HTML5Mutex.h" />
     <ClInclude Include="..\Include\YBaseLib\HTML5\HTML5ReadWriteLock.h" />
     <ClInclude Include="..\Include\YBaseLib\HTML5\HTML5RecursiveMutex.h" />
+    <ClInclude Include="..\Include\YBaseLib\HTML5\HTML5Semaphore.h" />
     <ClInclude Include="..\Include\YBaseLib\HTML5\HTML5Thread.h" />
     <ClInclude Include="..\Include\YBaseLib\IntrusiveLinkedList.h" />
     <ClInclude Include="..\Include\YBaseLib\KeyValuePair.h" />
@@ -165,6 +167,7 @@
     <ClInclude Include="..\Include\YBaseLib\POSIX\POSIXMutex.h" />
     <ClInclude Include="..\Include\YBaseLib\POSIX\POSIXReadWriteLock.h" />
     <ClInclude Include="..\Include\YBaseLib\POSIX\POSIXRecursiveMutex.h" />
+    <ClInclude Include="..\Include\YBaseLib\POSIX\POSIXSemaphore.h" />
     <ClInclude Include="..\Include\YBaseLib\POSIX\POSIXSubprocess.h" />
     <ClInclude Include="..\Include\YBaseLib\POSIX\POSIXThread.h" />
     <ClInclude Include="..\Include\YBaseLib\ProgressCallbacks.h" />
@@ -174,6 +177,7 @@
     <ClInclude Include="..\Include\YBaseLib\RecursiveMutexLock.h" />
     <ClInclude Include="..\Include\YBaseLib\ReferenceCounted.h" />
     <ClInclude Include="..\Include\YBaseLib\ReferenceCountedHolder.h" />
+    <ClInclude Include="..\Include\YBaseLib\Semaphore.h" />
     <ClInclude Include="..\Include\YBaseLib\Singleton.h" />
     <ClInclude Include="..\Include\YBaseLib\Sockets\BaseSocket.h" />
     <ClInclude Include="..\Include\YBaseLib\Sockets\BufferedStreamSocket.h" />
@@ -207,6 +211,7 @@
     <ClInclude Include="..\Include\YBaseLib\Windows\WindowsMutex.h" />
     <ClInclude Include="..\Include\YBaseLib\Windows\WindowsReadWriteLock.h" />
     <ClInclude Include="..\Include\YBaseLib\Windows\WindowsRecursiveMutex.h" />
+    <ClInclude Include="..\Include\YBaseLib\Windows\WindowsSemaphore.h" />
     <ClInclude Include="..\Include\YBaseLib\Windows\WindowsSubprocess.h" />
     <ClInclude Include="..\Include\YBaseLib\Windows\WindowsThread.h" />
     <ClInclude Include="..\Include\YBaseLib\XMLReader.h" />

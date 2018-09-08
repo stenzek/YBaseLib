@@ -359,5 +359,18 @@
     <ClInclude Include="..\Include\YBaseLib\Windows\WindowsThread.h">
       <Filter>Windows</Filter>
     </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\Windows\WindowsSemaphore.h">
+      <Filter>Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\Semaphore.h" />
+    <ClInclude Include="..\Include\YBaseLib\Android\AndroidSemaphore.h">
+      <Filter>Android</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\POSIX\POSIXSemaphore.h">
+      <Filter>POSIX</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\YBaseLib\HTML5\HTML5Semaphore.h">
+      <Filter>HTML5</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
