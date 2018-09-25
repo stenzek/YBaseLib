@@ -4,6 +4,7 @@
 #include "YBaseLib/MemArray.h"
 #include "YBaseLib/Mutex.h"
 #include "YBaseLib/Singleton.h"
+#include <cinttypes>
 
 enum LOGLEVEL
 {
@@ -15,8 +16,9 @@ enum LOGLEVEL
   LOGLEVEL_INFO = 5,    // "InfoPrint"
   LOGLEVEL_DEV = 6,     // "DevPrint"
   LOGLEVEL_PROFILE = 7, // "ProfilePrint"
-  LOGLEVEL_TRACE = 8,   // "TracePrint"
-  LOGLEVEL_COUNT = 9,
+  LOGLEVEL_DEBUG = 8,   // "DebugPrint"
+  LOGLEVEL_TRACE = 9,   // "TracePrint"
+  LOGLEVEL_COUNT = 10
 };
 
 class Log : public Singleton<Log>
@@ -106,9 +108,14 @@ extern Log* g_pLog;
   Log::GetInstance().Writef(___LogChannel___, LOG_MESSAGE_FUNCTION_NAME, LOGLEVEL_PROFILE, __VA_ARGS__)
 
 #ifdef Y_BUILD_CONFIG_RELEASE
+#define Log_DebugPrint(msg) MULTI_STATEMENT_MACRO_BEGIN MULTI_STATEMENT_MACRO_END
+#define Log_DebugPrintf(...) MULTI_STATEMENT_MACRO_BEGIN MULTI_STATEMENT_MACRO_END
 #define Log_TracePrint(msg) MULTI_STATEMENT_MACRO_BEGIN MULTI_STATEMENT_MACRO_END
 #define Log_TracePrintf(...) MULTI_STATEMENT_MACRO_BEGIN MULTI_STATEMENT_MACRO_END
 #else
+#define Log_DebugPrint(msg) Log::GetInstance().Write(___LogChannel___, LOG_MESSAGE_FUNCTION_NAME, LOGLEVEL_DEBUG, msg)
+#define Log_DebugPrintf(...)                                                                                           \
+  Log::GetInstance().Writef(___LogChannel___, LOG_MESSAGE_FUNCTION_NAME, LOGLEVEL_DEBUG, __VA_ARGS__)
 #define Log_TracePrint(msg) Log::GetInstance().Write(___LogChannel___, LOG_MESSAGE_FUNCTION_NAME, LOGLEVEL_TRACE, msg)
 #define Log_TracePrintf(...)                                                                                           \
   Log::GetInstance().Writef(___LogChannel___, LOG_MESSAGE_FUNCTION_NAME, LOGLEVEL_TRACE, __VA_ARGS__)
