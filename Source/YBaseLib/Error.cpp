@@ -4,14 +4,13 @@
 // Platform-specific includes
 #if defined(Y_PLATFORM_WINDOWS)
 #include "YBaseLib/Windows/WindowsHeaders.h"
+static_assert(std::is_same<DWORD, unsigned long>::value, "DWORD is unsigned long");
+static_assert(std::is_same<HRESULT, long>::value, "HRESULT is long");
 #endif
 
 #include <cstdlib>
 #include <cstring>
 #include <type_traits>
-
-static_assert(std::is_same<DWORD, unsigned long>::value, "DWORD is unsigned long");
-static_assert(std::is_same<HRESULT, long>::value, "HRESULT is long");
 
 Error::Error() : m_type(ERROR_TYPE_NONE)
 {

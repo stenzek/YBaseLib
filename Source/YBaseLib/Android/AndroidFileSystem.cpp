@@ -2,7 +2,6 @@
 
 // Android FileSystem implementation.
 #if defined(Y_PLATFORM_ANDROID)
-
 #include "YBaseLib/Log.h"
 #include <dirent.h>
 #include <errno.h>

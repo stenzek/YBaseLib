@@ -56,7 +56,7 @@ void Log::FormatLogMessageForDisplay(const char* channelName, const char* functi
                                      const char* message, void (*printCallback)(const char*, void*),
                                      void* pCallbackUserData)
 {
-  static const char levelCharacters[LOGLEVEL_COUNT] = {'X', 'E', 'W', 'P', 'S', 'I', 'D', 'R', 'T'};
+  static const char levelCharacters[LOGLEVEL_COUNT] = {'X', 'E', 'W', 'P', 'S', 'I', 'D', 'R', 'B', 'T'};
 
   // find time since start of process
   float messageTime = (float)Y_TimerConvertToSeconds(Y_TimerGetValue() - s_startTimeStamp);

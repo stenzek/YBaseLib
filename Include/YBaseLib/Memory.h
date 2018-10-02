@@ -2,6 +2,7 @@
 
 #include "YBaseLib/Common.h"
 #include <cstdlib>
+#include <cstring>
 
 void Y_memzero(void* pDestination, size_t ByteCount);
 void Y_memcpy_stride(void* pDestination, size_t DestinationStride, const void* pSource, size_t SourceStride,
