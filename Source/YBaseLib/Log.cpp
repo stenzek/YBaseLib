@@ -112,7 +112,8 @@ static void ConsoleOutputLogCallback(void* pUserParam, const char* channelName, 
       FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_INTENSITY, // INFO
       FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_GREEN,                        // DEV
       FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_INTENSITY,                  // PROFILE
-      FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_GREEN,                        // TRACE
+      FOREGROUND_GREEN,                                                           // DEBUG
+      FOREGROUND_BLUE,                                                            // TRACE
     };
 
     CONSOLE_SCREEN_BUFFER_INFO oldConsoleScreenBufferInfo;
@@ -162,11 +163,12 @@ static void ConsoleOutputLogCallback(void* pUserParam, const char* channelName, 
     "\033[1;31m", // ERROR
     "\033[1;33m", // WARNING
     "\033[1;35m", // PERF
-    "\033[1;37m", // SUCCESS
+    "\033[1;32m", // SUCCESS
     "\033[1;37m", // INFO
     "\033[0;37m", // DEV
     "\033[1;36m", // PROFILE
-    "\033[1;36m", // TRACE
+    "\033[0;32m", // DEBUG
+    "\033[0;34m", // TRACE
   };
 
   int outputFd = (level <= LOGLEVEL_WARNING) ? STDERR_FILENO : STDOUT_FILENO;
@@ -209,6 +211,7 @@ static void DebugOutputLogCallback(void* pUserParam, const char* channelName, co
     ANDROID_LOG_INFO,  // INFO
     ANDROID_LOG_DEBUG, // DEV
     ANDROID_LOG_DEBUG, // PROFILE
+    ANDROID_LOG_DEBUG, // DEBUG
     ANDROID_LOG_DEBUG, // TRACE
   };
 
