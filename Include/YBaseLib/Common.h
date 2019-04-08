@@ -93,6 +93,10 @@
 #define Y_CPU_X86 1
 #define Y_CPU_STR "x86"
 #define Y_CPU_SSE_LEVEL 0
+#elif defined(__aarch64__)
+#define Y_CPU_AARCH64 1
+#define Y_CPU_STR "AArch64"
+#define Y_CPU_SSE_LEVEL 0
 #elif defined(__arm__)
 #define Y_CPU_ARM 1
 #define Y_CPU_STR "ARM"
