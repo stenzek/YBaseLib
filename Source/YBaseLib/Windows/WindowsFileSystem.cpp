@@ -5,7 +5,7 @@
 #ifdef Y_PLATFORM_WINDOWS
 
 #include "YBaseLib/Log.h"
-#include <ShlObj.h>
+#include <shlobj.h>
 Log_SetChannel(FileSystem);
 
 static uint32 TranslateWin32Attributes(uint32 Win32Attributes)

@@ -6,12 +6,14 @@
 #include "YBaseLib/FileSystem.h"
 #include "YBaseLib/Log.h"
 #include "YBaseLib/Windows/WindowsHeaders.h"
-#include <Psapi.h>
-#include <WinSock2.h>
+#include <psapi.h>
+#include <winsock2.h>
 #include <cstdlib>
 #include <io.h>
+#if defined(Y_COMPILER_MSVC)
 #pragma comment(lib, "psapi.lib")
 #pragma comment(lib, "ws2_32.lib")
+#endif
 Log_SetChannel(Platform);
 
 void Platform::MakeTempFileName(char* filename, uint32 len)

@@ -283,7 +283,7 @@ Subprocess::Connection* Subprocess::ConnectToParent(int32 connectionTimeout /*= 
   if (!ReadEnvironmentVariable(COMM_ENV_VAR_PARENT_PROCESS_ID, &environmentVariableValue))
   {
     Log_DevPrintf("Subprocess::ConnectToParent: Not a subprocess.");
-    return false;
+    return nullptr;
   }
 
   // Convert to a process ID
@@ -294,7 +294,7 @@ Subprocess::Connection* Subprocess::ConnectToParent(int32 connectionTimeout /*= 
   if (hParentProcess == NULL)
   {
     Log_DevPrintf("Subprocess::ConnectToParent: Failed to open parent process.");
-    return false;
+    return nullptr;
   }
 
   // Read the handle environment variables

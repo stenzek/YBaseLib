@@ -20,7 +20,7 @@
 
 #if defined(Y_CPU_X86) || defined(Y_CPU_X64)
 
-#if defined(Y_COMPILER_MSVC)
+#if defined(Y_PLATFORM_WINDOWS)
 #include <intrin.h>
 #define CALL_CPUID(in, out) __cpuid((int*)out, in)
 #elif defined(Y_COMPILER_GCC) || defined(Y_COMPILER_CLANG)

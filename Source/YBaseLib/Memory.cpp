@@ -4,7 +4,7 @@
 #include <cstdlib>
 #include <cstring>
 
-#if defined(Y_COMPILER_MSVC)
+#if defined(Y_PLATFORM_WINDOWS)
 #include <intrin.h>
 #endif
 
@@ -86,7 +86,7 @@ void* Y_reallocarray(void* ptr, size_t num, size_t size)
   return std::realloc(ptr, num * size);
 }
 
-#if defined(Y_COMPILER_MSVC)
+#if defined(Y_PLATFORM_WINDOWS)
 
 void* Y_aligned_malloc(size_t size, size_t alignment)
 {
@@ -218,7 +218,7 @@ void Y_qsort(void* pBase, size_t nElements, size_t ElementSize, int (*CompareFun
   qsort(pBase, nElements, ElementSize, CompareFunction);
 }
 
-#if defined(Y_COMPILER_MSVC)
+#if defined(Y_PLATFORM_WINDOWS)
 
 void Y_qsort_r(void* pBase, size_t nElements, size_t ElementSize, void* pContext,
                int (*CompareFunction)(void*, const void*, const void*))
@@ -509,7 +509,7 @@ uint32 Y_popcnt(uint64 value)
   return static_cast<uint32>(value);
 }
 
-#ifdef Y_COMPILER_MSVC
+#ifdef Y_PLATFORM_WINDOWS
 
 bool Y_bitscanforward(uint32 mask, uint32* index)
 {

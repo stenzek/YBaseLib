@@ -1,6 +1,6 @@
 #include "YBaseLib/Atomic.h"
 
-#if defined(Y_COMPILER_MSVC)
+#if defined(Y_PLATFORM_WINDOWS)
 
 #include <intrin.h>
 #define WIN32_LEAN_AND_MEAN 1
@@ -27,12 +27,25 @@ int16 Y_AtomicCompareExchange(volatile int16& Result, int16 Exchange, int16 Comp
 template<>
 int16 Y_AtomicExchange(volatile int16& Result, int16 Exchange)
 {
+#ifdef Y_COMPILER_MSVC
   return _InterlockedExchange16(&Result, Exchange);
+#else
+  // Appears to be missing on mingw...
+  __sync_synchronize();
+  int16 Old = Result;
+  Result = Exchange;
+  __sync_synchronize();
+  return Old;
+#endif
 }
 template<>
 int16 Y_AtomicAnd(volatile int16& Value, int16 AndVal)
 {
-  return _InterlockedAnd16(&Value, AndVal);
+#ifdef Y_COMPILER_MSVC
+  return _InterlockedAnd16((volatile short*)&Value, AndVal);
+#else
+  return __sync_and_and_fetch(&Value, AndVal);
+#endif
 }
 template<>
 uint16 Y_AtomicIncrement(volatile uint16& Value)
@@ -52,12 +65,25 @@ uint16 Y_AtomicCompareExchange(volatile uint16& Result, uint16 Exchange, uint16 
 template<>
 uint16 Y_AtomicExchange(volatile uint16& Result, uint16 Exchange)
 {
+#ifdef Y_COMPILER_MSVC
   return _InterlockedExchange16((volatile short*)&Result, Exchange);
+#else
+  // Appears to be missing on mingw...
+  __sync_synchronize();
+  uint16 Old = Result;
+  Result = Exchange;
+  __sync_synchronize();
+  return Old;
+#endif
 }
 template<>
 uint16 Y_AtomicAnd(volatile uint16& Value, uint16 AndVal)
 {
+#ifdef Y_COMPILER_MSVC
   return _InterlockedAnd16((volatile short*)&Value, AndVal);
+#else
+  return __sync_and_and_fetch(&Value, AndVal);
+#endif
 }
 
 // int32
@@ -219,9 +245,10 @@ template<>
 int16 Y_AtomicExchange(volatile int16& Result, int16 Exchange)
 {
   __sync_synchronize();
+  int16 Old = Result;
   Result = Exchange;
   __sync_synchronize();
-  return Exchange;
+  return Old;
 }
 template<>
 int16 Y_AtomicAnd(volatile int16& Value, int16 AndVal)
@@ -247,9 +274,10 @@ template<>
 uint16 Y_AtomicExchange(volatile uint16& Result, uint16 Exchange)
 {
   __sync_synchronize();
+  uint16 Old = Result;
   Result = Exchange;
   __sync_synchronize();
-  return Exchange;
+  return Old;
 }
 template<>
 uint16 Y_AtomicAnd(volatile uint16& Value, uint16 AndVal)
@@ -277,9 +305,10 @@ template<>
 int32 Y_AtomicExchange(volatile int32& Result, int32 Exchange)
 {
   __sync_synchronize();
+  int32 Old = Result;
   Result = Exchange;
   __sync_synchronize();
-  return Exchange;
+  return Old;
 }
 template<>
 int32 Y_AtomicAnd(volatile int32& Value, int32 AndVal)
@@ -336,9 +365,10 @@ template<>
 int64 Y_AtomicExchange(volatile int64& Result, int64 Exchange)
 {
   __sync_synchronize();
+  int64 Old = Result;
   Result = Exchange;
   __sync_synchronize();
-  return Exchange;
+  return Old;
 }
 template<>
 int64 Y_AtomicAnd(volatile int64& Value, int64 AndVal)
@@ -364,9 +394,10 @@ template<>
 uint64 Y_AtomicExchange(volatile uint64& Result, uint64 Exchange)
 {
   __sync_synchronize();
+  uint64 Old = Result;
   Result = Exchange;
   __sync_synchronize();
-  return Exchange;
+  return Old;
 }
 template<>
 uint64 Y_AtomicAnd(volatile uint64& Value, uint64 AndVal)
@@ -383,9 +414,10 @@ void* Y_AtomicCompareExchangeVoidPointer(void* volatile& Pointer, void* Exchange
 void* Y_AtomicExchangeVoidPointer(void* volatile& Pointer, void* Exchange)
 {
   __sync_synchronize();
+  void* Old = Pointer;
   Pointer = Exchange;
   __sync_synchronize();
-  return Exchange;
+  return Old;
 }
 
 #else

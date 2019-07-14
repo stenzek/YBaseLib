@@ -169,7 +169,7 @@ void Timestamp::ToString(String& destination, const char* format) const
   time_t unixTime = (time_t)AsUnixTimestamp();
   tm localTime;
 
-#if Y_COMPILER_MSVC
+#if defined(Y_PLATFORM_WINDOWS)
   localtime_s(&localTime, &unixTime);
 #else
   localtime_r(&unixTime, &localTime);

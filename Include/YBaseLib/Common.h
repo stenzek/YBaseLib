@@ -266,14 +266,14 @@ char (&__countof_ArraySizeHelper(T (&array)[N]))[N];
 #endif
 
 // alloca on gcc requires alloca.h
-#if defined(Y_COMPILER_MSVC)
+#if defined(Y_PLATFORM_WINDOWS)
 #include <malloc.h>
 #elif defined(Y_COMPILER_GCC) || defined(Y_COMPILER_CLANG) || defined(Y_COMPILER_EMSCRIPTEN)
 #include <alloca.h>
 #endif
 
 // base types
-#if defined(Y_COMPILER_MSVC)
+#if defined(Y_PLATFORM_WINDOWS)
 typedef unsigned __int8 byte;
 typedef signed __int8 int8;
 typedef signed __int16 int16;
@@ -297,7 +297,7 @@ typedef uint64_t uint64;
 #endif
 
 // VC++ doesn't define ssize_t, so define it here.
-#if defined(Y_COMPILER_MSVC)
+#if defined(Y_PLATFORM_WINDOWS)
 #ifdef _WIN64
 typedef signed __int64 ssize_t;
 #else

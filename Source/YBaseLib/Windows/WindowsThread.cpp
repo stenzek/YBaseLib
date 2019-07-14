@@ -90,6 +90,7 @@ int32 Thread::Join()
 
 void Thread::SetDebugName(const char* threadName)
 {
+#if defined(Y_COMPILER_MSVC)
   const DWORD MS_VC_EXCEPTION = 0x406D1388;
 
 #pragma pack(push, 8)
@@ -115,6 +116,7 @@ void Thread::SetDebugName(const char* threadName)
   __except (EXCEPTION_EXECUTE_HANDLER)
   {
   }
+#endif
 }
 
 unsigned __stdcall Thread::__ThreadStart(void* pArguments)

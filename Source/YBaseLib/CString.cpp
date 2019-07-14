@@ -8,7 +8,7 @@
 #include <cstdlib>
 #include <cstring>
 
-#ifdef Y_COMPILER_MSVC
+#ifdef Y_PLATFORM_WINDOWS
 #define strtoll _strtoi64
 #define strtoull _strtoui64
 #endif
@@ -34,7 +34,7 @@ uint32 Y_strlen(const char* szSource)
   return (uint32)strlen(szSource);
 }
 
-#if defined(Y_COMPILER_MSVC)
+#if defined(Y_PLATFORM_WINDOWS)
 
 void Y_strncpy(char* pszDestination, uint32 cbDestination, const char* szSource)
 {
@@ -83,7 +83,7 @@ int32 Y_strncmp(const char* S1, const char* S2, uint32 Count)
   return strncmp(S1, S2, Count);
 }
 
-#if defined(Y_COMPILER_MSVC)
+#if defined(Y_PLATFORM_WINDOWS)
 
 int32 Y_stricmp(const char* S1, const char* S2)
 {
@@ -136,7 +136,7 @@ uint32 Y_sscanf(const char* buffer, const char* format, ...)
   return r;
 }
 
-#if defined(Y_COMPILER_MSVC)
+#if defined(Y_PLATFORM_WINDOWS)
 
 uint32 Y_vsnprintf(char* pszDestination, uint32 cbDestination, const char* szFormat, va_list ArgPointer)
 {
@@ -152,7 +152,11 @@ uint32 Y_vscprintf(const char* szFormat, va_list ArgPointer)
 
 uint32 Y_vscanf(const char* buffer, const char* format, va_list argptr)
 {
+#ifdef Y_COMPILER_MSVC
   int r = vsscanf_s(buffer, format, argptr);
+#else
+  int r = vsscanf(buffer, format, argptr);
+#endif
   return (r < 0) ? 0 : (uint32)r;
 }
 

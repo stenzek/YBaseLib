@@ -7,7 +7,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <sys/stat.h>
-#if defined(Y_COMPILER_MSVC)
+#if defined(Y_PLATFORM_WINDOWS)
 #include <direct.h>
 #include <io.h>
 #include <share.h>
@@ -115,7 +115,7 @@ public:
     return true;
   }
 
-#if defined(Y_COMPILER_MSVC)
+#if defined(Y_PLATFORM_WINDOWS)
 
   virtual bool SeekAbsolute(uint64 Offset) override
   {
@@ -829,7 +829,7 @@ void GrowableMemoryByteStream::Grow(uint32 MinimumGrowth)
   }
 }
 
-#if defined(Y_COMPILER_MSVC)
+#if defined(Y_PLATFORM_WINDOWS)
 
 bool ByteStream_OpenFileStream(const char* fileName, uint32 openMode, ByteStream** ppReturnPointer)
 {

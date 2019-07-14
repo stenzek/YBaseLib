@@ -2,7 +2,7 @@
 
 #define IS_HOST_ENDIAN_TYPE(x) ((x) == Y_HOST_ENDIAN_TYPE)
 
-#if defined(Y_COMPILER_MSVC)
+#if defined(Y_PLATFORM_WINDOWS)
 #include <cstdlib>
 #define flip16(x) _byteswap_ushort((x))
 #define flip32(x) _byteswap_ulong((x))

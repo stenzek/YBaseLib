@@ -4,15 +4,12 @@
 
 #ifdef Y_PLATFORM_WINDOWS
 #define WIN32_LEAN_AND_MEAN 1
-#include <TlHelp32.h>
+#include <tlhelp32.h>
 #include <windows.h>
+#include <intrin.h>
 #else
 #include <cstdio>
 #include <cstdlib>
-#endif
-
-#ifdef Y_COMPILER_MSVC
-#include <intrin.h>
 #endif
 
 static Mutex s_AssertFailedMutex;
