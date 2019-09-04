@@ -72,9 +72,6 @@
     <ClCompile Include="YBaseLib\Android\AndroidThread.cpp">
       <Filter>Android</Filter>
     </ClCompile>
-    <ClCompile Include="YBaseLib\Android\AndroidBarrier.cpp">
-      <Filter>Android</Filter>
-    </ClCompile>
     <ClCompile Include="YBaseLib\Android\AndroidConditionVariable.cpp">
       <Filter>Android</Filter>
     </ClCompile>
@@ -112,9 +109,6 @@
       <Filter>POSIX</Filter>
     </ClCompile>
     <ClCompile Include="YBaseLib\POSIX\POSIXThread.cpp">
-      <Filter>POSIX</Filter>
-    </ClCompile>
-    <ClCompile Include="YBaseLib\POSIX\POSIXBarrier.cpp">
       <Filter>POSIX</Filter>
     </ClCompile>
     <ClCompile Include="YBaseLib\POSIX\POSIXConditionVariable.cpp">

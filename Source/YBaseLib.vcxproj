@@ -35,7 +35,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="YBaseLib\Android\AndroidBarrier.cpp" />
     <ClCompile Include="YBaseLib\Android\AndroidConditionVariable.cpp" />
     <ClCompile Include="YBaseLib\Android\AndroidEvent.cpp" />
     <ClCompile Include="YBaseLib\Android\AndroidFileSystem.cpp" />
@@ -72,7 +71,6 @@
     <ClCompile Include="YBaseLib\Memory.cpp" />
     <ClCompile Include="YBaseLib\NameTable.cpp" />
     <ClCompile Include="YBaseLib\NumericLimits.cpp" />
-    <ClCompile Include="YBaseLib\POSIX\POSIXBarrier.cpp" />
     <ClCompile Include="YBaseLib\POSIX\POSIXConditionVariable.cpp" />
     <ClCompile Include="YBaseLib\POSIX\POSIXFileSystem.cpp" />
     <ClCompile Include="YBaseLib\POSIX\POSIXPlatform.cpp" />

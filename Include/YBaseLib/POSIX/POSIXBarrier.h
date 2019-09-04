@@ -2,23 +2,24 @@
 #include "YBaseLib/Atomic.h"
 #include "YBaseLib/Event.h"
 
-#include <semaphore.h>
-
 class Barrier
 {
 public:
-  Barrier(uint32 threadCount);
-  ~Barrier();
+  Barrier(uint32 threadCount) : m_threadCount(threadCount) { pthread_barrier_init(&m_barrier, nullptr, threadCount); }
+
+  ~Barrier() { pthread_barrier_destroy(&m_barrier); }
 
   const uint32 GetThreadCount() const { return m_threadCount; }
-  void SetThreadCount(uint32 threadCount);
+  void SetThreadCount(uint32 threadCount)
+  {
+    pthread_barrier_destroy(&m_barrier);
+    pthread_barrier_init(&m_barrier, nullptr, threadCount);
+    m_threadCount = threadCount;
+  }
 
-  void Wait();
+  void Wait() { pthread_barrier_wait(&m_barrier); }
 
 private:
   uint32 m_threadCount;
-  Y_ATOMIC_DECL uint32 m_enteredThreadCount;
-  Y_ATOMIC_DECL uint32 m_exitedThreadCount;
-  sem_t m_enterSemaphore;
-  sem_t m_exitSemaphore;
+  pthread_barrier_t m_barrier;
 };
