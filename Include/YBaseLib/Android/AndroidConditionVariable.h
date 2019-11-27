@@ -1,5 +1,6 @@
 #pragma once
 #include "YBaseLib/Common.h"
+#include <pthread.h>
 
 class Mutex;
 class RecursiveMutex;

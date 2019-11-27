@@ -1,6 +1,7 @@
 #pragma once
 #include "YBaseLib/Assert.h"
 #include "YBaseLib/Common.h"
+#include <pthread.h>
 
 class RecursiveMutex
 {
